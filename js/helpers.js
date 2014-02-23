@@ -110,6 +110,16 @@ ReadiumSDK.Helpers.EndsWith = function (str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 };
 
+ReadiumSDK.Helpers.clip = function(str, part) {
+
+    var ix = str.indexOf(part);
+    if(ix == -1) {
+        return str;
+    }
+
+    return str.substring(0, ix) + str.substring(ix + part.length);
+};
+
 ReadiumSDK.Helpers.Margins = function(margin, border, padding) {
 
     this.margin = margin;

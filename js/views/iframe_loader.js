@@ -22,7 +22,7 @@ ReadiumSDK.Views.IFrameLoader = function() {
     this.loadIframe = function(iframe, src, callback, context) {
 
         //iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
-        
+
         var isWaitingForFrameLoad = true;
 
         iframe.onload = function() {
@@ -57,6 +57,95 @@ ReadiumSDK.Views.IFrameLoader = function() {
 
         }, 500);
 
-        iframe.src = src;
+        injectScripts(src, function(dom){
+
+            if(!dom) {
+
+                if(isWaitingForFrameLoad) {
+                    isWaitingForFrameLoad = false;
+                    callback.call(context, false);
+                }
+            }
+
+            iframe.srcdoc = dom.documentElement.innerHTML;
+
+        });
     };
+
+    function getFileText(path, callback) {
+
+        $.ajax({
+            url: path,
+            dataType: 'xml',
+            async: true,
+            success: function (result) {
+                callback(result);
+            },
+            error: function (xhr, status, errorThrown) {
+                console.error('Error when AJAX fetching ' + path);
+                console.error(status);
+                console.error(errorThrown);
+                callback();
+            }
+        });
+    }
+
+    function injectScripts(src, callback) {
+
+        getFileText(src, function(contentFileData){
+
+            if(!contentFileData) {
+                callback();
+                return;
+            }
+
+            var $head = $('head', contentFileData);
+            var $base = $('base', $head);
+
+            if($base.length === 0) {
+
+                $base = $("<base href=\"" + src + "\">");
+                $head.prepend($base);
+            }
+
+            var securityScript = "<script>(" + disableParent.toString() + ")()<\/script>";
+            $('body', contentFileData).prepend(securityScript);
+
+            var readingSystemScript = createSetReadingSystemObjectString(navigator.epubReadingSystem);
+            $('body', contentFileData).append("<script>(" + readingSystemScript + ")()<\/script>");
+
+            callback(contentFileData);
+        });
+    }
+
+    function disableParent() {
+        window.parent = undefined;
+    }
+
+    function createSetReadingSystemObjectString(rs) {
+
+        var res = "function setReadingSystem(){ navigator.epubReadingSystem = { ";
+
+        var props = [];
+
+        for (var property in rs) {
+            if (rs.hasOwnProperty(property)) {
+
+                if(typeof rs[property] === 'function') {
+                    props.push(property + ":" + rs[property].toString());
+                }
+                else if (typeof rs[property] === 'string') {
+                    props.push(property + ":\"" + rs[property] + "\"");
+                }
+                else {
+                    props.push(property + ":" + rs[property]);
+                }
+
+            }
+        }
+
+        return res + props.join(",") + "}; }"
+
+    }
+
 };
