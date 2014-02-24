@@ -29,6 +29,7 @@ ReadiumSDK.Views.ReflowableView = function(options){
 
     var self = this;
     
+    var _factory = options.factory;
     var _$viewport = options.$viewport;
     var _spine = options.spine;
     var _userStyles = options.userStyles;
@@ -78,7 +79,7 @@ ReadiumSDK.Views.ReflowableView = function(options){
         _$iframe.css(_spine.isLeftToRight() ? "left" : "right", "0px");
         _$iframe.css("overflow", "hidden");
 
-        _navigationLogic = new ReadiumSDK.Views.CfiNavigationLogic(_$contentFrame, _$iframe);
+        _navigationLogic = _factory.createCfiNavigationLogic(_$contentFrame, _$iframe);
 
         //we need this styles for css columnizer not to chop big images
         var declarations = {};
@@ -521,7 +522,7 @@ ReadiumSDK.Views.ReflowableView = function(options){
 
     this.getPaginationInfo = function() {
 
-        var paginationInfo = new ReadiumSDK.Models.CurrentPagesInfo(_spine.items.length, false, _spine.direction);
+        var paginationInfo = _factory.createCurrentPagesInfo(_spine, false);
 
         if(!_currentSpineItem) {
             return paginationInfo;
@@ -557,10 +558,10 @@ ReadiumSDK.Views.ReflowableView = function(options){
 
         if(!_currentSpineItem) {
 
-            return new ReadiumSDK.Models.BookmarkData("", "");
+            return _factory.createBookmarkData("", "");
         }
 
-        return new ReadiumSDK.Models.BookmarkData(_currentSpineItem.idref, self.getFirstVisibleElementCfi());
+        return _factory.createBookmarkData(_currentSpineItem.idref, self.getFirstVisibleElementCfi());
     };
 
     function getVisibleContentOffsets() {

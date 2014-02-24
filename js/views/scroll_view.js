@@ -23,6 +23,7 @@ ReadiumSDK.Views.ScrollView = function(options){
 
     var self = this;
 
+    var _factory = options.factory;
     var _$viewport = options.$viewport;
     var _spine = options.spine;
     var _userStyles = options.userStyles;
@@ -65,7 +66,7 @@ ReadiumSDK.Views.ScrollView = function(options){
         _$iframe.css("width", "100%");
 
 
-        _navigationLogic = new ReadiumSDK.Views.CfiNavigationLogic(_$contentFrame, _$iframe);
+        _navigationLogic = _factory.createCfiNavigationLogic(_$contentFrame, _$iframe);
 
         //We will call onViewportResize after user stopped resizing window
         var lazyResize = _.debounce(self.onViewportResize, 100);
@@ -475,7 +476,7 @@ ReadiumSDK.Views.ScrollView = function(options){
 
     this.getPaginationInfo = function() {
 
-        var paginationInfo = new ReadiumSDK.Models.CurrentPagesInfo(_spine.items.length, false, _spine.direction);
+        var paginationInfo = _factory.createCurrentPagesInfo(_spine, false);
 
         if(!_currentSpineItem) {
             return paginationInfo;
@@ -492,10 +493,10 @@ ReadiumSDK.Views.ScrollView = function(options){
 
         if(!_currentSpineItem) {
 
-            return new ReadiumSDK.Models.BookmarkData("", "");
+            return _factory.createBookmarkData("", "");
         }
 
-        return new ReadiumSDK.Models.BookmarkData(_currentSpineItem.idref, self.getFirstVisibleElementCfi());
+        return _factory.createBookmarkData(_currentSpineItem.idref, self.getFirstVisibleElementCfi());
     };
 
 

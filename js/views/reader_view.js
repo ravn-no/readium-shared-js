@@ -27,20 +27,27 @@ ReadiumSDK.Views.ReaderView = function(options) {
     _.extend(this, Backbone.Events);
 
     var self = this;
+    var _factory = undefined;
+    if (options.factory) {
+   	    _factory = options.factory; 
+    } else {
+   	    _factory = new ReadiumSDK.Factory(); 
+    }
     var _currentView = undefined;
     var _package = undefined;
     var _spine = undefined;
-    var _viewerSettings = new ReadiumSDK.Models.ViewerSettings({});
+    var _viewerSettings = _factory.createViewerSettings();
     //styles applied to the container divs
-    var _userStyles = new ReadiumSDK.Collections.StyleCollection();
+    var _userStyles = _factory.createStyleCollection();
     //styles applied to the content documents
-    var _bookStyles = new ReadiumSDK.Collections.StyleCollection();
-    var _internalLinksSupport = new ReadiumSDK.Views.InternalLinksSupport(this);
+    var _bookStyles = _factory.createStyleCollection();
+    var _internalLinksSupport = _factory.createInternalLinksSupport(this);
     var _mediaOverlayPlayer;
     var _mediaOverlayDataInjector;
-    var _iframeLoader;
+    var _iframeLoader = _factory.createIFrameLoader(options);
     var _$el;
-    var _annotationsManager = new ReadiumSDK.Views.AnnotationsManager(self, options);
+    var _annotationsManager = _factory.createAnnotationsManager(self, options);
+    
     
     if (options.el instanceof $) {
         _$el = options.el;
@@ -49,35 +56,11 @@ ReadiumSDK.Views.ReaderView = function(options) {
         _$el = $(options.el);
         console.log("** EL is a string:" + _$el.attr('id'));
     }
-    
-    
- 
-
-    if(options.iframeLoader) {
-        _iframeLoader = options.iframeLoader;
-    }
-    else {
-        _iframeLoader = new ReadiumSDK.Views.IFrameLoader();
-    }
 
     // returns true is view changed
     function initViewForItem(spineItem) {
 
-        var desiredViewType;
-
-        if(_viewerSettings.isScrollViewDoc || _viewerSettings.isScrollViewContinuous) {
-            desiredViewType = ReadiumSDK.Views.ScrollView;
-        }
-        else if(spineItem.isFixedLayout()) {
-            desiredViewType = ReadiumSDK.Views.FixedView;
-        }
-        //we don't support scroll continues yet we will create scroll doc instead
-        else if(spineItem.isScrolledDoc() || spineItem.isScrolledContinuous()) {
-            desiredViewType = ReadiumSDK.Views.ScrollView;
-        }
-        else {
-            desiredViewType = ReadiumSDK.Views.ReflowableView;
-        }
+        var desiredViewType = _factory.createDesiredViewType(_viewerSettings, spineItem);
 
         if(_currentView) {
             //current view is already rendered
@@ -93,7 +76,8 @@ ReadiumSDK.Views.ReaderView = function(options) {
             spine: _spine,
             userStyles: _userStyles,
             bookStyles: _bookStyles,
-            iframeLoader: _iframeLoader
+            iframeLoader: _iframeLoader,
+            factory: _factory
         };
 
 

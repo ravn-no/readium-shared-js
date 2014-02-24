@@ -26,6 +26,7 @@ ReadiumSDK.Views.FixedView = function(options){
     var self = this;
 
     var _$el;
+    var _factory = options.factory;
     var _$viewport = options.$viewport;
     var _spine = options.spine;
     var _userStyles = options.userStyles;
@@ -53,7 +54,8 @@ ReadiumSDK.Views.FixedView = function(options){
             spine: _spine,
             bookStyles: _bookStyles,
             class: cssclass,
-            contentAlignment: contentAlignment
+            contentAlignment: contentAlignment,
+            factory: _factory
         });
     }
 
@@ -407,7 +409,7 @@ ReadiumSDK.Views.FixedView = function(options){
 
     this.getPaginationInfo = function() {
 
-        var paginationInfo = new ReadiumSDK.Models.CurrentPagesInfo(_spine.items.length, true, _spine.direction);
+        var paginationInfo = _factory.createCurrentPagesInfo(_spine, true);
 
         var spreadItems = [_spread.leftItem, _spread.rightItem, _spread.centerItem];
 
@@ -436,10 +438,10 @@ ReadiumSDK.Views.FixedView = function(options){
                 cfi = "";
             }
 
-            return new ReadiumSDK.Models.BookmarkData(idref, cfi);
+            return _factory.createBookmarkData(idref, cfi);
         }
 
-        return new ReadiumSDK.Models.BookmarkData("", "");
+        return _factory.createBookmarkData("", "");
     };
 
     function getDisplayingViews() {

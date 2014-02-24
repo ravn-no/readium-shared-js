@@ -30,6 +30,7 @@ ReadiumSDK.Views.OnePageView = function(options){
     var _$epubHtml;
     var _$el;
     var _$iframe;
+    var _factory = options.factory;
     var _currentSpineItem;
     var _spine = options.spine;
     var _contentAlignment = options.contentAlignment;
@@ -244,7 +245,7 @@ ReadiumSDK.Views.OnePageView = function(options){
 
     this.getFirstVisibleElementCfi = function(){
 
-        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe);
+        var navigation = _factory.createCfiNavigationLogic(_$el, _$iframe);
         return navigation.getFirstVisibleElementCfi(0);
 
     };
@@ -256,7 +257,7 @@ ReadiumSDK.Views.OnePageView = function(options){
             return undefined;
         }
 
-        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe);
+        var navigation = _factory.createCfiNavigationLogic(_$el, _$iframe);
         return navigation.getElementByCfi(cfi, classBlacklist, elementBlacklist, idBlacklist);
     };
 
@@ -267,12 +268,12 @@ ReadiumSDK.Views.OnePageView = function(options){
             return undefined;
         }
 
-        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe);
+        var navigation = _factory.createCfiNavigationLogic(_$el, _$iframe);
         return navigation.getElement(selector);
     };
 
     this.getVisibleMediaOverlayElements = function() {
-        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe);
+        var navigation = _factory.createCfiNavigationLogic(_$el, _$iframe);
         return navigation.getVisibleMediaOverlayElements({top:0, bottom: _$iframe.height()});
     }
 
