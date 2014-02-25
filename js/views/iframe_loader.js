@@ -111,8 +111,8 @@ ReadiumSDK.Views.IFrameLoader = function() {
             var securityScript = "<script>(" + disableParent.toString() + ")()<\/script>";
             $('body', contentFileData).prepend(securityScript);
 
-            var readingSystemScript = createSetReadingSystemObjectString(navigator.epubReadingSystem);
-            $('body', contentFileData).append("<script>(" + readingSystemScript + ")()<\/script>");
+//            var readingSystemScript = createSetReadingSystemObjectString(navigator.epubReadingSystem);
+//            $('body', contentFileData).append("<script>(" + readingSystemScript + ")()<\/script>");
 
             callback(contentFileData);
         });
@@ -122,30 +122,30 @@ ReadiumSDK.Views.IFrameLoader = function() {
         window.parent = undefined;
     }
 
-    function createSetReadingSystemObjectString(rs) {
-
-        var res = "function setReadingSystem(){ navigator.epubReadingSystem = { ";
-
-        var props = [];
-
-        for (var property in rs) {
-            if (rs.hasOwnProperty(property)) {
-
-                if(typeof rs[property] === 'function') {
-                    props.push(property + ":" + rs[property].toString());
-                }
-                else if (typeof rs[property] === 'string') {
-                    props.push(property + ":\"" + rs[property] + "\"");
-                }
-                else {
-                    props.push(property + ":" + rs[property]);
-                }
-
-            }
-        }
-
-        return res + props.join(",") + "}; }"
-
-    }
+//    function createSetReadingSystemObjectString(rs) {
+//
+//        var res = "function setReadingSystem(){ navigator.epubReadingSystem = { ";
+//
+//        var props = [];
+//
+//        for (var property in rs) {
+//            if (rs.hasOwnProperty(property)) {
+//
+//                if(typeof rs[property] === 'function') {
+//                    props.push(property + ":" + rs[property].toString());
+//                }
+//                else if (typeof rs[property] === 'string') {
+//                    props.push(property + ":\"" + rs[property] + "\"");
+//                }
+//                else {
+//                    props.push(property + ":" + rs[property]);
+//                }
+//
+//            }
+//        }
+//
+//        return res + props.join(",") + "}; }"
+//
+//    }
 
 };
