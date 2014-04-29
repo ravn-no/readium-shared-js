@@ -79,18 +79,24 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
     }
 
-    function getViewType(view) {
 
-        if(view instanceof ReadiumSDK.Views.ReflowableView) {
+
+    this.viewType = function() {
+
+        if(!_currentView) {
+            return undefined;
+        }
+
+        if(_currentView instanceof ReadiumSDK.Views.ReflowableView) {
             return ReadiumSDK.Views.ReaderView.VIEW_TYPE_COLUMNIZED;
         }
 
-        if(view instanceof ReadiumSDK.Views.FixedView) {
+        if(_currentView instanceof ReadiumSDK.Views.FixedView) {
             return ReadiumSDK.Views.ReaderView.VIEW_TYPE_FIXED;
         }
 
-        if(view instanceof ReadiumSDK.Views.ScrollView) {
-            if(view.isContinuousScroll()) {
+        if(_currentView instanceof ReadiumSDK.Views.ScrollView) {
+            if(_currentView.isContinuousScroll()) {
                 return ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS;
             }
 
@@ -99,7 +105,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
         console.error("Unrecognized view type");
         return undefined;
-    }
+    };
 
     function deduceDesiredViewType(spineItem) {
 
@@ -135,7 +141,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
         if(_currentView) {
 
-            if(getViewType(_currentView) == desiredViewType) {
+            if(self.viewType() == desiredViewType) {
                 return false;
             }
 
@@ -398,7 +404,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
      */
     this.openPageNext = function() {
 
-        if(getViewType(_currentView) === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
+        if(self.viewType() === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
             _currentView.openPageNext(self);
             return;
         }
@@ -435,7 +441,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
      */
     this.openPagePrev = function() {
 
-        if(getViewType(_currentView) === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
+        if(self.viewType() === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
             _currentView.openPagePrev(self);
             return;
         }
