@@ -156,12 +156,20 @@ ReadiumSDK.Views.FixedView = function(options){
         }
     }
 
-    var _pageSwitchDir = 0;
-    
     // dir: 0 => new or same page, 1 => previous, 2 => next
     var updatePageSwitchDir = function(dir, hasChanged)
     {
-        _pageSwitchDir = dir;
+        if (hasChanged)
+        {
+            if (!dir || dir === 0)
+            {
+                navigator.epubReadingSystem.PageDirection = undefined;
+            }
+            else
+            {
+                navigator.epubReadingSystem.PageDirection = dir === 1 ? navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS : navigator.epubReadingSystem.EVENT_PAGE_NEXT;
+            }
+        }
         
         // irrespective of display state
         if (_leftPageView) _leftPageView.updatePageSwitchDir(dir, hasChanged);
@@ -568,16 +576,6 @@ ReadiumSDK.Views.FixedView = function(options){
 //console.error($iframe[0].getAttribute("id"));
                 $iframe[0].setAttribute("id", spineItem.idref);
 //console.error($iframe[0].getAttribute("id"));
-
-                try
-                {
-                    //  TODO: hackkyyyy!
-                    spineItem._$IFRAME[0].contentWindow.READIUM_pageSwitchDirection = _pageSwitchDir;
-                }
-                catch (err)
-                {
-                    console.error(err);
-                }
                 
                 self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOADED, $iframe, spineItem);
             }
