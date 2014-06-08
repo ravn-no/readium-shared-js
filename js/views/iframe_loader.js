@@ -62,8 +62,6 @@ ReadiumSDK.Views.IFrameLoader = function() {
 
             isWaitingForFrameLoad = false;
 
-            self.updateIframeEvents(iframe);
-
             try
             {
                 iframe.contentWindow.navigator.epubReadingSystem = navigator.epubReadingSystem;
@@ -77,6 +75,8 @@ ReadiumSDK.Views.IFrameLoader = function() {
             {
                 console.log("epubReadingSystem INJECTION ERROR! " + ex.message);
             }
+
+            self.updateIframeEvents(iframe);
 
             callback.call(context, true);
 

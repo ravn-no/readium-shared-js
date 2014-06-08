@@ -71,6 +71,65 @@ ReadiumSDK.Views.ReaderView = function(options) {
         _iframeLoader = new ReadiumSDK.Views.IFrameLoader();
     }
 
+    if (navigator.epubReadingSystem)
+    {
+        navigator.epubReadingSystem.EVENT_PAGE_NEXT = "epubReadingSystem.EVENT_PAGE_NEXT";
+        navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS = "epubReadingSystem.EVENT_PAGE_PREVIOUS";
+
+        navigator.epubReadingSystem.onEvent = function(win, event, callbackResponder)
+        {
+            if (!win || !event || !callbackResponder) return;
+
+            if (event !== navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS && event !== navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+            {
+                return false;
+            }
+            
+// win.navigator.epubReadingSystem.TEST = true;
+// console.error(navigator.epubReadingSystem.TEST); // Yep! (it's a shared object across all iframes!)
+            
+            //  TODO: hackkyyyy!
+            if (!win.READIUM_onEvent) win.READIUM_onEvent = {};
+            win.READIUM_onEvent[event] = true;
+            
+            win.addEventListener("message", function(e)
+            {
+                if (!e) return;
+                
+                //e.origin
+                //assert e.source === window
+                
+                var payload = e.data;
+                
+                if (!payload || !payload.event || payload.event !== event) return;
+                
+                if (!_currentView) return;
+
+                //var paginationInfo = _currentView ? _currentView.getPaginationInfo() : undefined;
+                var response = callbackResponder(); // TODO payload?
+                
+                if (response)
+                {
+console.debug("PAGE TURN OKAY");
+                    if (event === navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS)
+                    {
+                        openPagePrev_();
+                    }
+                    else if (event === navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+                    {
+                        openPageNext_();
+                    }
+                }
+                else
+                {
+console.debug("PAGE TURN PREVENT");
+                }
+            }, false);
+            
+            return true;
+        };
+    }
+
     function createViewForType(viewType, options) {
         var createdView;
         switch(viewType) {
@@ -451,6 +510,19 @@ ReadiumSDK.Views.ReaderView = function(options) {
      */
     this.openPageNext = function() {
 
+        var noEvent = true;
+        if (_currentView.openPageNextEvent)
+        {
+            noEvent = !_currentView.openPageNextEvent();
+        }
+        if (noEvent)
+        {
+            openPageNext_();
+        }
+    };
+    
+    var openPageNext_ = function() {
+
         if(getViewType(_currentView) === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
             _currentView.openPageNext(self);
             return;
@@ -488,6 +560,19 @@ ReadiumSDK.Views.ReaderView = function(options) {
      */
     this.openPagePrev = function() {
 
+        var noEvent = true;
+        if (_currentView.openPagePrevEvent)
+        {
+            noEvent = !_currentView.openPagePrevEvent();
+        }
+        if (noEvent)
+        {
+            openPagePrev_();
+        }
+    };
+    
+    var openPagePrev_ = function() {
+
         if(getViewType(_currentView) === ReadiumSDK.Views.ReaderView.VIEW_TYPE_SCROLLED_CONTINUOUS) {
             _currentView.openPagePrev(self);
             return;
@@ -519,6 +604,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
         openPage(openPageRequest, 1);
     };
+
 
     function getSpineItem(idref) {
 

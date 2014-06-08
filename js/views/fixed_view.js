@@ -457,12 +457,78 @@ ReadiumSDK.Views.FixedView = function(options){
     };
 
     this.openPageNext = function(initiator) {
-
+        
         _spread.openNext();
-        
+    
         updatePageSwitchDir(_spread.spine.isRightToLeft() ? 1 : 2, true);
-        
+    
         redraw(initiator, undefined);
+    };
+
+    this.openPageNextEvent = function() {
+
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.onEvent) return false;
+        
+        var pageInfo = this.getPaginationInfo();
+//console.error(pageInfo);
+        if (!pageInfo || !pageInfo.openPages || !pageInfo.openPages.length) return false;
+        var lastOpenPage = pageInfo.openPages[pageInfo.openPages.length - 1];
+        // ASSERT lastOpenPage.spineItemPageIndex === lastOpenPage.spineItemPageCount - 1
+        
+        var spineItem = _spine.items[lastOpenPage.spineItemIndex];
+        // ASSERT spineItem === lastOpenPage.idref
+//console.error(spineItem);
+        if (!spineItem._$IFRAME) return false;
+
+        try
+        {
+            var win = spineItem._$IFRAME[0].contentWindow;
+            if (!win || !win.READIUM_onEvent || !win.READIUM_onEvent[navigator.epubReadingSystem.EVENT_PAGE_NEXT]) return false;
+            
+//console.debug(spineItem._$IFRAME[0].contentWindow);
+            spineItem._$IFRAME[0].contentWindow.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_NEXT}, "*");
+        }
+        catch (err)
+        {
+            console.error(err);
+            console.log(err.message);
+            return false;
+        }
+        
+        return true;
+    };
+
+    this.openPagePrevEvent = function() {
+
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.onEvent) return false;
+        
+        var pageInfo = this.getPaginationInfo();
+//console.error(pageInfo);
+        if (!pageInfo || !pageInfo.openPages || !pageInfo.openPages.length) return false;
+        var firstOpenPage = pageInfo.openPages[0];
+        // ASSERT lastOpenPage.spineItemPageIndex === lastOpenPage.spineItemPageCount - 1
+        
+        var spineItem = _spine.items[firstOpenPage.spineItemIndex];
+        // ASSERT spineItem === lastOpenPage.idref
+//console.error(spineItem);
+        if (!spineItem._$IFRAME) return false;
+
+        try
+        {
+            var win = spineItem._$IFRAME[0].contentWindow;
+            if (!win || !win.READIUM_onEvent || !win.READIUM_onEvent[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS]) return false;
+            
+//console.debug(spineItem._$IFRAME[0].contentWindow);
+            spineItem._$IFRAME[0].contentWindow.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS}, "*");
+        }
+        catch (err)
+        {
+            console.error(err);
+            console.log(err.message);
+            return false;
+        }
+        
+        return true;
     };
 
     function updatePageViewForItem(pageView, item, context) {
@@ -492,7 +558,13 @@ ReadiumSDK.Views.FixedView = function(options){
                 if(!pageView.meta_height() || !pageView.meta_width()) {
                     console.error("Invalid document " + spineItem.href + ": viewport is not specified!");
                 }
-
+                
+                //TODO: remove after unload?
+                spineItem._$IFRAME = $iframe;
+//console.error($iframe[0].getAttribute("id"));
+                $iframe[0].setAttribute("id", spineItem.idref);
+//console.error($iframe[0].getAttribute("id"));
+                
                 self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOADED, $iframe, spineItem);
             }
 
