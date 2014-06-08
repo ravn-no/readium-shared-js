@@ -156,9 +156,13 @@ ReadiumSDK.Views.FixedView = function(options){
         }
     }
 
+    var _pageSwitchDir = 0;
+    
     // dir: 0 => new or same page, 1 => previous, 2 => next
     var updatePageSwitchDir = function(dir, hasChanged)
     {
+        _pageSwitchDir = dir;
+        
         // irrespective of display state
         if (_leftPageView) _leftPageView.updatePageSwitchDir(dir, hasChanged);
         if (_rightPageView) _rightPageView.updatePageSwitchDir(dir, hasChanged);
@@ -564,6 +568,16 @@ ReadiumSDK.Views.FixedView = function(options){
 //console.error($iframe[0].getAttribute("id"));
                 $iframe[0].setAttribute("id", spineItem.idref);
 //console.error($iframe[0].getAttribute("id"));
+
+                try
+                {
+                    //  TODO: hackkyyyy!
+                    spineItem._$IFRAME[0].contentWindow.READIUM_pageSwitchDirection = _pageSwitchDir;
+                }
+                catch (err)
+                {
+                    console.error(err);
+                }
                 
                 self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOADED, $iframe, spineItem);
             }
