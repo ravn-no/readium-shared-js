@@ -76,57 +76,119 @@ ReadiumSDK.Views.ReaderView = function(options) {
         navigator.epubReadingSystem.EVENT_PAGE_NEXT = "epubReadingSystem.EVENT_PAGE_NEXT";
         navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS = "epubReadingSystem.EVENT_PAGE_PREVIOUS";
 
-        navigator.epubReadingSystem.onEvent = function(win, event, callbackResponder)
+        var _onOff = function(off, win, event, responder)
         {
-            if (!win || !event || !callbackResponder) return;
+            if (!win || !event || !responder)
+            {
+                return false;
+            }
 
-            if (event !== navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS && event !== navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+            if (event !== navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS
+                && event !== navigator.epubReadingSystem.EVENT_PAGE_NEXT)
             {
                 return false;
             }
             
 // win.navigator.epubReadingSystem.TEST = true;
-// console.error(navigator.epubReadingSystem.TEST); // Yep! (it's a shared object across all iframes!)
+// console.error(window.navigator.epubReadingSystem.TEST); // Yep! (it's a shared object across all iframes!)
             
-            //  TODO: hackkyyyy!
-            if (!win.READIUM_onEvent) win.READIUM_onEvent = {};
-            win.READIUM_onEvent[event] = true;
-            
-            win.addEventListener("message", function(e)
+            // internal tracking
+            if (!win.READIUM_activeEvents)
             {
-                if (!e) return;
+                win.READIUM_activeEvents = {};
                 
-                //e.origin
-                //assert e.source === window
-                
-                var payload = e.data;
-                
-                if (!payload || !payload.event || payload.event !== event) return;
-                
-                if (!_currentView) return;
+                // Cleanup is not strictly necessary, as the READIUM_activeEvents data structure is attached to the window that is going out-of-scope...but still, it's good to have it for illustration purposes, and just in case the internal tracking method changes in the future (e.g. "active event" objects attached to shared epubReadingSystem instance).
+                win.addEventListener("unload", function()
+                {
+                    if (!win.READIUM_activeEvents) return;
+                    
+                    var evArr = [navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS, navigator.epubReadingSystem.EVENT_PAGE_NEXT];
+                    for (var evI in evArr)
+                    {
+                        var ev = evArr[evI];
 
-                //var paginationInfo = _currentView ? _currentView.getPaginationInfo() : undefined;
-                var response = callbackResponder(); // TODO payload?
+                        if (win.READIUM_activeEvents[ev])
+                        {
+                            for(var i = win.READIUM_activeEvents[ev].length - 1; i >= 0; i--)
+                            {
+                                var data = win.READIUM_activeEvents[ev][i];
+                            
+                                win.removeEventListener("message", data.messageCallback, false);
+                            
+                                data.responder = undefined;
+                                data.messageCallback = undefined;
+
+                                win.READIUM_activeEvents[ev][i] = undefined;
+                                win.READIUM_activeEvents[ev].splice(i, 1);
+                            }
+                        }
+                    }
+                }, false);
+            }
+            if (!win.READIUM_activeEvents[event]) win.READIUM_activeEvents[event] = [];
+            
+            if (off)
+            {
+                for(var i = win.READIUM_activeEvents[event].length - 1; i >= 0; i--)
+                {
+                    var data = win.READIUM_activeEvents[event][i];
+                    if (data.responder && data.responder === responder)
+                    {
+                        win.READIUM_activeEvents[event][i] = undefined;
+                        win.READIUM_activeEvents[event].splice(i, 1);
+                        
+                        win.removeEventListener("message", data.messageCallback, false);
+                    }
+                }
+            }
+            else
+            {
+                var messageCallback = function(e)
+                {
+                    if (!e) return;
                 
-                if (response)
-                {
-console.debug("PAGE TURN OKAY");
-                    if (event === navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS)
+                    //e.origin
+                    //assert e.source === window
+                
+                    var payload = e.data;
+                
+                    if (!payload || !payload.event || payload.event !== event) return;
+                
+                    if (!_currentView) return;
+
+                    //payload.spineItemIdRef
+                    //var paginationInfo = _currentView ? _currentView.getPaginationInfo() : undefined;
+                    
+                    var response = responder(); // TODO payload?
+                
+                    if (response) // normal page turn allowed
                     {
-                        openPagePrev_();
+                        if (event === navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS)
+                        {
+                            openPagePrev_();
+                        }
+                        else if (event === navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+                        {
+                            openPageNext_();
+                        }
                     }
-                    else if (event === navigator.epubReadingSystem.EVENT_PAGE_NEXT)
-                    {
-                        openPageNext_();
-                    }
-                }
-                else
-                {
-console.debug("PAGE TURN PREVENT");
-                }
-            }, false);
+                };
+                
+                win.READIUM_activeEvents[event].push({responder: responder, messageCallback: messageCallback});
+                
+                win.addEventListener("message", messageCallback, false);
+            }
             
             return true;
+        };
+        
+        navigator.epubReadingSystem.on = function(win, event, responder)
+        {
+            return _onOff(false, win, event, responder);
+        };
+        navigator.epubReadingSystem.off = function(win, event, responder)
+        {
+            return _onOff(true, win, event, responder);
         };
     }
 

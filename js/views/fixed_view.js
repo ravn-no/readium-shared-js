@@ -56,6 +56,8 @@ ReadiumSDK.Views.FixedView = function(options){
     var _spread = new ReadiumSDK.Models.Spread(_spine, false);
     var _bookMargins;
     var _contentMetaSize;
+    var _isRedrowing = false;
+    var _redrawRequest = false;
 
     function createOnePageView(elementClass) {
 
@@ -133,13 +135,28 @@ ReadiumSDK.Views.FixedView = function(options){
 
     function redraw(initiator, paginationRequest) {
 
+        if(_isRedrowing) {
+            _redrawRequest = {initiator: initiator, paginationRequest: paginationRequest};
+            return;
+        }
+
+        _isRedrowing = true;
+
         var context = {isElementAdded : false};
         var pageLoadDeferrals = createPageLoadDeferrals([{pageView: _leftPageView, spineItem: _spread.leftItem, context: context},
                                                               {pageView: _rightPageView, spineItem: _spread.rightItem, context: context},
                                                               {pageView: _centerPageView, spineItem: _spread.centerItem, context: context}]);
-        if(pageLoadDeferrals.length > 0) {
 
-            $.when.apply($, pageLoadDeferrals).done(function(){
+        $.when.apply($, pageLoadDeferrals).done(function(){
+            _isRedrowing = false;
+
+            if(_redrawRequest) {
+                var p1 = _redrawRequest.initiator;
+                var p2 = _redrawRequest.paginationRequest;
+                _redrawRequest = undefined;
+                redraw(p1, p2);
+            }
+            else {
                 if(context.isElementAdded) {
                     self.applyStyles();
                 }
@@ -152,8 +169,10 @@ ReadiumSDK.Views.FixedView = function(options){
                 {
                     onPagesLoaded(initiator);
                 }
-            });
-        }
+            }
+
+        });
+
     }
 
     // dir: 0 => new or same page, 1 => previous, 2 => next
@@ -209,10 +228,7 @@ ReadiumSDK.Views.FixedView = function(options){
         for(var i = 0; i < viewItemPairs.length; i++) {
 
             var dfd = updatePageViewForItem(viewItemPairs[i].pageView, viewItemPairs[i].spineItem, viewItemPairs[i].context);
-            if(dfd) {
-                pageLoadDeferrals.push(dfd);
-            }
-
+            pageLoadDeferrals.push(dfd);
         }
 
         return pageLoadDeferrals;
@@ -446,7 +462,9 @@ ReadiumSDK.Views.FixedView = function(options){
         var leftItem = _spread.leftItem;
         var rightItem = _spread.rightItem;
         var centerItem = _spread.centerItem;
-        
+
+        var isSyntheticSpread = ReadiumSDK.Helpers.deduceSyntheticSpread(_$viewport, paginationRequest.spineItem, _viewSettings);
+        _spread.setSyntheticSpread(isSyntheticSpread);
         _spread.openItem(paginationRequest.spineItem);
         
         var hasChanged = leftItem !== _spread.leftItem || rightItem !== _spread.rightItem || centerItem !== _spread.centerItem;
@@ -479,26 +497,25 @@ ReadiumSDK.Views.FixedView = function(options){
 
     this.openPageNextEvent = function() {
 
-        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.onEvent) return false;
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.on) return false;
         
         var pageInfo = this.getPaginationInfo();
-//console.error(pageInfo);
+
         if (!pageInfo || !pageInfo.openPages || !pageInfo.openPages.length) return false;
         var lastOpenPage = pageInfo.openPages[pageInfo.openPages.length - 1];
         // ASSERT lastOpenPage.spineItemPageIndex === lastOpenPage.spineItemPageCount - 1
         
         var spineItem = _spine.items[lastOpenPage.spineItemIndex];
         // ASSERT spineItem === lastOpenPage.idref
-//console.error(spineItem);
-        if (!spineItem._$IFRAME) return false;
+
+        if (!spineItem || !spineItem._$IFRAME) return false;
 
         try
         {
             var win = spineItem._$IFRAME[0].contentWindow;
-            if (!win || !win.READIUM_onEvent || !win.READIUM_onEvent[navigator.epubReadingSystem.EVENT_PAGE_NEXT]) return false;
-            
-//console.debug(spineItem._$IFRAME[0].contentWindow);
-            spineItem._$IFRAME[0].contentWindow.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_NEXT}, "*");
+            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_NEXT] || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_NEXT].length) return false;
+
+            win.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_NEXT, spineItemIdRef: spineItem.idref}, "*");
         }
         catch (err)
         {
@@ -512,26 +529,25 @@ ReadiumSDK.Views.FixedView = function(options){
 
     this.openPagePrevEvent = function() {
 
-        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.onEvent) return false;
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.on) return false;
         
         var pageInfo = this.getPaginationInfo();
-//console.error(pageInfo);
+
         if (!pageInfo || !pageInfo.openPages || !pageInfo.openPages.length) return false;
         var firstOpenPage = pageInfo.openPages[0];
         // ASSERT lastOpenPage.spineItemPageIndex === lastOpenPage.spineItemPageCount - 1
         
         var spineItem = _spine.items[firstOpenPage.spineItemIndex];
         // ASSERT spineItem === lastOpenPage.idref
-//console.error(spineItem);
-        if (!spineItem._$IFRAME) return false;
+
+        if (!spineItem || !spineItem._$IFRAME) return false;
 
         try
         {
             var win = spineItem._$IFRAME[0].contentWindow;
-            if (!win || !win.READIUM_onEvent || !win.READIUM_onEvent[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS]) return false;
+            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS] || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS].length) return false;
             
-//console.debug(spineItem._$IFRAME[0].contentWindow);
-            spineItem._$IFRAME[0].contentWindow.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS}, "*");
+            win.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS, spineItemIdRef: spineItem.idref}, "*");
         }
         catch (err)
         {
@@ -545,47 +561,46 @@ ReadiumSDK.Views.FixedView = function(options){
 
     function updatePageViewForItem(pageView, item, context) {
 
+        var dfd = $.Deferred();
+
         if(!item) {
             if(pageView.isDisplaying()) {
                 pageView.remove();
             }
 
-            return undefined;
+            dfd.resolve();
         }
+        else {
 
-        if(!pageView.isDisplaying()) {
+            if(!pageView.isDisplaying()) {
 
-            _$el.append(pageView.render().element());
+                _$el.append(pageView.render().element());
 
-            context.isElementAdded = true;
-        }
-
-        var dfd = $.Deferred();
-
-        pageView.loadSpineItem(item, function(success, $iframe, spineItem, isNewContentDocumentLoaded, context){
-
-            if(success && isNewContentDocumentLoaded) {
-
-                //if we a re loading fixed view meta size should be defined
-                if(!pageView.meta_height() || !pageView.meta_width()) {
-                    console.error("Invalid document " + spineItem.href + ": viewport is not specified!");
-                }
-                
-                //TODO: remove after unload?
-                spineItem._$IFRAME = $iframe;
-//console.error($iframe[0].getAttribute("id"));
-                $iframe[0].setAttribute("id", spineItem.idref);
-//console.error($iframe[0].getAttribute("id"));
-                
-                self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOADED, $iframe, spineItem);
+                context.isElementAdded = true;
             }
 
-            dfd.resolve();
+            pageView.loadSpineItem(item, function(success, $iframe, spineItem, isNewContentDocumentLoaded, context){
 
-        }, context);
+                if(success && isNewContentDocumentLoaded) {
+
+                    //if we a re loading fixed view meta size should be defined
+                    if(!pageView.meta_height() || !pageView.meta_width()) {
+                        console.error("Invalid document " + spineItem.href + ": viewport is not specified!");
+                    }
+                    
+                    //TODO: remove after unload? ...or alternatively, attach to PageView instance (which gets cleaned-up automatically by the garbage collector, whereas the spineItem's lifetime is that of the opened EPUB)
+                    spineItem._$IFRAME = $iframe;
+                    $iframe[0].setAttribute("data-spineItem.idref", spineItem.idref);
+                
+                    self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOADED, $iframe, spineItem);
+                }
+                
+                dfd.resolve();
+                
+            }, context);
+        }
 
         return dfd.promise();
-
     }
 
     this.getPaginationInfo = function() {
