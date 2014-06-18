@@ -273,6 +273,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
             if(getViewType(_currentView) == desiredViewType) {
                 callback(false);
+                return;
             }
 
             resetCurrentView();
