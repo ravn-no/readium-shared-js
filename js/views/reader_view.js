@@ -73,8 +73,52 @@ ReadiumSDK.Views.ReaderView = function(options) {
 
     if (navigator.epubReadingSystem)
     {
-        navigator.epubReadingSystem.EVENT_PAGE_NEXT = "epubReadingSystem.EVENT_PAGE_NEXT";
-        navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS = "epubReadingSystem.EVENT_PAGE_PREVIOUS";
+        navigator.epubReadingSystem.Pagination = {};
+        
+        var _touchSuspendWindows = [];
+        navigator.epubReadingSystem.Pagination.TouchSuspend = function(win, suspend)
+        {
+            if (typeof suspend !== "undefined")
+            {
+                if (!win) return;
+
+                if (suspend)
+                {
+                    for(var i = _touchSuspendWindows.length - 1; i >= 0; i--)
+                    {
+                        var w = _touchSuspendWindows[i];
+                        if (win === w)
+                        {
+                            return true;
+                        }
+                    }
+                    
+                    _touchSuspendWindows.push(win);
+                
+                    win.addEventListener("unload", function()
+                    {
+                        navigator.epubReadingSystem.Pagination.TouchSuspend(win, false);
+                    });
+                }
+                else
+                {
+                    for(var i = _touchSuspendWindows.length - 1; i >= 0; i--)
+                    {
+                        var w = _touchSuspendWindows[i];
+                        if (win === w)
+                        {
+                            _touchSuspendWindows[i] = undefined;
+                            _touchSuspendWindows.splice(i, 1);
+                        }
+                    }
+                }
+            }
+            
+            return _touchSuspendWindows.length > 0;
+        };
+        
+        navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT = "epubReadingSystem.Pagination.EVENT_PAGE_NEXT";
+        navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS = "epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS";
 
         var _onOff = function(off, win, event, responder)
         {
@@ -83,8 +127,8 @@ ReadiumSDK.Views.ReaderView = function(options) {
                 return false;
             }
 
-            if (event !== navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS
-                && event !== navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+            if (event !== navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS
+                && event !== navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT)
             {
                 return false;
             }
@@ -102,7 +146,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
                 {
                     if (!win.READIUM_activeEvents) return;
                     
-                    var evArr = [navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS, navigator.epubReadingSystem.EVENT_PAGE_NEXT];
+                    var evArr = [navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS, navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT];
                     for (var evI in evArr)
                     {
                         var ev = evArr[evI];
@@ -163,11 +207,11 @@ ReadiumSDK.Views.ReaderView = function(options) {
                 
                     if (response) // normal page turn allowed
                     {
-                        if (event === navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS)
+                        if (event === navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS)
                         {
                             openPagePrev_();
                         }
-                        else if (event === navigator.epubReadingSystem.EVENT_PAGE_NEXT)
+                        else if (event === navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT)
                         {
                             openPageNext_();
                         }
@@ -182,11 +226,11 @@ ReadiumSDK.Views.ReaderView = function(options) {
             return true;
         };
         
-        navigator.epubReadingSystem.on = function(win, event, responder)
+        navigator.epubReadingSystem.Pagination.registerEventListener = function(win, event, responder)
         {
             return _onOff(false, win, event, responder);
         };
-        navigator.epubReadingSystem.off = function(win, event, responder)
+        navigator.epubReadingSystem.Pagination.unregisterEventListener = function(win, event, responder)
         {
             return _onOff(true, win, event, responder);
         };

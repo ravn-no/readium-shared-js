@@ -181,13 +181,16 @@ ReadiumSDK.Views.FixedView = function(options){
     {
         if (hasChanged)
         {
-            if (!dir || dir === 0)
+            if (navigator.epubReadingSystem && navigator.epubReadingSystem.Pagination)
             {
-                navigator.epubReadingSystem.PageDirection = undefined;
-            }
-            else
-            {
-                navigator.epubReadingSystem.PageDirection = dir === 1 ? navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS : navigator.epubReadingSystem.EVENT_PAGE_NEXT;
+                if (!dir || dir === 0)
+                {
+                    navigator.epubReadingSystem.Pagination.Direction = undefined;
+                }
+                else
+                {
+                    navigator.epubReadingSystem.Pagination.Direction = dir === 1 ? navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS : navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT;
+                }
             }
         }
         
@@ -498,7 +501,7 @@ ReadiumSDK.Views.FixedView = function(options){
 
     this.openPageNextEvent = function() {
 
-        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.on) return false;
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.Pagination) return false;
         
         var pageInfo = this.getPaginationInfo();
 
@@ -514,9 +517,9 @@ ReadiumSDK.Views.FixedView = function(options){
         try
         {
             var win = spineItem._$IFRAME[0].contentWindow;
-            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_NEXT] || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_NEXT].length) return false;
+            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT] || !win.READIUM_activeEvents[navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT].length) return false;
 
-            win.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_NEXT, spineItemIdRef: spineItem.idref}, "*");
+            win.postMessage({event: navigator.epubReadingSystem.Pagination.EVENT_PAGE_NEXT, spineItemIdRef: spineItem.idref}, "*");
         }
         catch (err)
         {
@@ -530,7 +533,7 @@ ReadiumSDK.Views.FixedView = function(options){
 
     this.openPagePrevEvent = function() {
 
-        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.on) return false;
+        if (!navigator.epubReadingSystem || !navigator.epubReadingSystem.Pagination) return false;
         
         var pageInfo = this.getPaginationInfo();
 
@@ -546,9 +549,9 @@ ReadiumSDK.Views.FixedView = function(options){
         try
         {
             var win = spineItem._$IFRAME[0].contentWindow;
-            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS] || !win.READIUM_activeEvents[navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS].length) return false;
+            if (!win || !win.READIUM_activeEvents || !win.READIUM_activeEvents[navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS] || !win.READIUM_activeEvents[navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS].length) return false;
             
-            win.postMessage({event: navigator.epubReadingSystem.EVENT_PAGE_PREVIOUS, spineItemIdRef: spineItem.idref}, "*");
+            win.postMessage({event: navigator.epubReadingSystem.Pagination.EVENT_PAGE_PREVIOUS, spineItemIdRef: spineItem.idref}, "*");
         }
         catch (err)
         {
