@@ -749,7 +749,8 @@ ReadiumSDK.Views.OnePageView = function(options, classes, enableBookStyleOverrid
     };
 
     this.getFirstVisibleMediaOverlayElement = function() {
-        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe);
+        var navigation = new ReadiumSDK.Views.CfiNavigationLogic(_$el, _$iframe,
+            { rectangleBased: true, paginationInfo: undefined });
         return navigation.getFirstVisibleMediaOverlayElement({top:0, bottom: _$iframe.height()});
     };
 
