@@ -141,6 +141,15 @@ ReadiumSDK.Views.CfiNavigationLogic = function($viewport, $iframe, options){
             : true; //this check always passed, if corresponding offset isn't set
 
         var percentOfElementHeight = 0;
+        // RAVNHACK (EB-621) {{{
+        if (!isBelowVisibleTop) {
+            window.ravnhack_lastVisibilityCheckInfo = -1;
+        } else if (!isAboveVisibleBottom) {
+            window.ravnhack_lastVisibilityCheckInfo = 1;
+        } else {
+            window.ravnhack_lastVisibilityCheckInfo = 0;
+        }
+        // RAVNHACK }}}
         if (isBelowVisibleTop && isAboveVisibleBottom) { // element is visible
             if (!shouldCalculateVisibilityOffset) {
                 return 100;
@@ -215,6 +224,21 @@ ReadiumSDK.Views.CfiNavigationLogic = function($viewport, $iframe, options){
                 break;
             }
         }
+
+        // RAVNHACK (EB-621) {{{
+        if (visibilityPercentage === 0) {
+            var clr = clientRectangles[0];
+            // assumes left to right reading direction
+            if (clr.left < 0) {
+                window.ravnhack_lastVisibilityCheckInfo = -1; // Indicates that rect lies to the left of the visible page.
+            } else if (clr.left >= frameDimensions.width) {
+                window.ravnhack_lastVisibilityCheckInfo = +1; // Indicates that rect lies to the right of the visible page.
+            }
+        } else {
+            window.ravnhack_lastVisibilityCheckInfo = 0; // Indicates that rect is visible.
+        }
+        // RAVNHACK }}}
+
         return visibilityPercentage;
     }
 
@@ -502,7 +526,8 @@ ReadiumSDK.Views.CfiNavigationLogic = function($viewport, $iframe, options){
     }
 
     //we look for text and images
-    this.findFirstVisibleElement = function (props) {
+    // NOTE: RAVN: we keep old method in case we want to compare it with the new implementation.
+    this.findFirstVisibleElementOLD = function (props) {
 
         if (typeof props !== 'object') {
             // compatibility with legacy code, `props` is `topOffset` actually
@@ -540,6 +565,72 @@ ReadiumSDK.Views.CfiNavigationLogic = function($viewport, $iframe, options){
 
         return {$element: $firstVisibleTextNode, percentY: percentOfElementHeight};
     };
+
+    // NOTE: RAVN: This method has been rewritten in order to overcome a serious performance issue. (EB-621)
+    this.findFirstVisibleElement = function (props) {
+
+        if (typeof props !== 'object') {
+            // compatibility with legacy code, `props` is `topOffset` actually
+            props = { top: props };
+        }
+
+        var $elements;
+        var $firstVisibleTextNode = null;
+        var percentOfElementHeight = 0;
+
+        $elements = $("body", this.getRootElement()).find(":not(iframe)").contents().filter(function () {
+            return isValidTextNode(this) || this.nodeName.toLowerCase() === 'img';
+        });
+
+
+        // Binary search
+
+        var lo = 0,
+            hi = $elements.length - 1,
+            mid,
+            element,
+            $element,
+            bestMatch,
+            visibilityResult;
+        while (lo <= hi) {
+            mid = ((lo + hi) >> 1);
+            element = $elements[mid];
+
+            if (element.nodeType === Node.TEXT_NODE)  { //text node
+                $element = $(element).parent();
+            } else {
+                $element = $(element); //image
+            }
+            visibilityResult = visibilityCheckerFunc($element, props, true);
+            if (window.ravnhack_lastVisibilityCheckInfo === -1) {
+                lo = mid + 1;
+            } else if (window.ravnhack_lastVisibilityCheckInfo === 1) {
+                hi = mid - 1;
+            } else {
+                bestMatch = [$element, visibilityResult];
+                // look further to the left (or up), since we are looking for the FIRST visible element on the page.
+                hi = mid - 1;
+            }
+        }
+
+        /*
+        var oldResult = this.findFirstVisibleElementOLD(props);
+        if (oldResult.$element) {
+            if (oldResult.$element[0] !== bestMatch[0][0] && oldResult.percentY !== 100 - bestMatch[1]) {
+                console.warn('Wrong calculation in findFirstVisibleElement');
+            }
+        } else if (bestMatch) {
+            console.warn('Wrong calculation in findFirstVisibleElement');
+        }
+        */
+
+        if (bestMatch) {
+            return {$element: bestMatch[0], percentY: 100 - bestMatch[1]};
+        } else {
+            return {$element: null, percentY: 0};
+        }
+    };
+
 
     this.getFirstVisibleElementCfi = function(topOffset) {
 
