@@ -120,6 +120,10 @@ ReadiumSDK.Views.ReflowableView = function(options, reader){
 
     };
 
+    this.currentSpineItem = function () { // Added by RAVN. Needed for EB-659 hack.
+        return _currentSpineItem;
+    };
+
     this.isReflowable = function() {
         return true;
     };
