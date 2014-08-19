@@ -856,6 +856,10 @@ ReadiumSDK.Views.ReflowableView = function(options, reader){
     //     return _navigationLogic.getVisibleMediaOverlayElements(visibleContentOffsets);
     // };
 
+    this.isElementVisible = function (element) {
+        return _navigationLogic.isElementVisible(element, getVisibleContentOffsets());
+    };
+
     this.insureElementVisibility = function(spineItemId, element, initiator) {
 
         var $element = $(element);

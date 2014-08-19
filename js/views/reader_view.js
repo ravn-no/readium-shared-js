@@ -995,6 +995,14 @@ ReadiumSDK.Views.ReaderView = function(options) {
         }
     };
 
+    this.isElementVisible = function (element) {
+        if (_currentView) {
+            return _currentView.isElementVisible($(element));
+        } else {
+            return false;
+        }
+    };
+
     var _resizeBookmark = null;
     var _resizeMOWasPlaying = false;
 

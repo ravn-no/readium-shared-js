@@ -1334,6 +1334,20 @@ ReadiumSDK.Views.ScrollView = function(options, isContinuousScroll, reader){
         return elementRange;
     }
 
+    this.isElementVisible = function (element) {
+        var visibility = 0;
+        forEachItemView(function (pageView) {
+            var navigation = pageView.getNavigator();
+            if (navigation.getRootElement().ownerDocument === element[0].ownerDocument) {
+                //visibility = navigation.isElementVisible(element, getVisibleContentOffsets());
+                visibility = isElementVisibleOnScreen(pageView, element, 60);
+                return false;
+            }
+            return true;
+        }, false);
+        return visibility;
+    };
+
     this.insureElementVisibility = function(spineItemId, element, initiator) {
         var pageView = undefined;
 
