@@ -652,6 +652,12 @@ ReadiumSDK.Views.ScrollView = function(options, isContinuousScroll, reader){
             true, //enableBookStyleOverrides
             reader);
             
+
+        // RAVNHACK EB-550
+        pageView.on(ReadiumSDK.Views.OnePageView.SPINE_ITEM_OPEN_START, function($iframe, spineItem) {
+            self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOAD_START, $iframe, spineItem);
+        });
+
         pageView.render();
         if (_viewSettings) pageView.setViewSettings(_viewSettings);
 
