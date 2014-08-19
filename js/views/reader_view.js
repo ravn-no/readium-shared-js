@@ -420,7 +420,7 @@ ReadiumSDK.Views.ReaderView = function(options) {
 //console.debug("UpdateSettings: " + JSON.stringify(settingsData));
 
         _viewerSettings.update(settingsData);
-        
+        window.ravn_hadRealLayoutChange = true;// RAVN: EB-665:
         if (_mediaOverlayPlayer)
         {
             _mediaOverlayPlayer.setAutomaticNextSmil(_viewerSettings.mediaOverlaysAutomaticPageTurn ? true : false);

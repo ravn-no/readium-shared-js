@@ -454,6 +454,7 @@ ReadiumSDK.Views.OnePageView = function(options, classes, enableBookStyleOverrid
 
     //this is called by scroll_view for reflowable spine item
     this.resizeIFrameToContent = function() {
+        window.ravn_hadRealLayoutChange = true;// RAVN: EB-655
         var contHeight = getContentDocHeight();
         //console.log("resizeIFrameToContent: " + contHeight);
 

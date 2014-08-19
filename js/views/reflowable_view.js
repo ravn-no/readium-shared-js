@@ -672,7 +672,7 @@ ReadiumSDK.Views.ReflowableView = function(options, reader){
         else {
 
             //we get here on resizing the viewport
-            
+            window.ravn_hadRealLayoutChange = true;// RAVN: EB-665
             onPaginationChanged(self); // => redraw() => showBook(), so the trick below is not needed
 
             // //We do this to force re-rendering of the document in the iframe.
