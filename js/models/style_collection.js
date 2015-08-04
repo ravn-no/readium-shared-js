@@ -23,7 +23,12 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE.
 
-ReadiumSDK.Collections.StyleCollection = function() {
+define(["./style"], function(Style) {
+/**
+ *
+ * @constructor
+ */
+var StyleCollection = function() {
 
     var _styles = [];
 
@@ -52,7 +57,7 @@ ReadiumSDK.Collections.StyleCollection = function() {
             style.setDeclarations(declarations);
         }
         else {
-            style = new ReadiumSDK.Models.Style(selector, declarations);
+            style = new Style(selector, declarations);
             _styles.push(style);
         }
 
@@ -94,3 +99,5 @@ ReadiumSDK.Collections.StyleCollection = function() {
     }
 
 };
+    return StyleCollection;
+});

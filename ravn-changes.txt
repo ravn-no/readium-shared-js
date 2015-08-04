@@ -1,0 +1,12 @@
+js/views/one_page_view.js
+    EB-665, hadreallayoutchange. TODO: check if still relevant
+    Added prefixed css-rules when resetting transform on showIFrame (seems to still be relevant, check)
+    EB-839
+
+js/views/reader_view.js
+    EB-665
+
+js/views/scroll_view.js: 
+    EB-550 hack superflouous and removed
+    EB-839 fix for calculations of iframe height when html element is padded
+    function isElementVisible added. TODO, check if it's still relevant and working
