@@ -664,18 +664,9 @@ var ScrollView = function (options, isContinuousScroll, reader) {
             ["content-doc-frame"],
             true, //enableBookStyleOverrides
             reader);
-<<<<<<< HEAD
-            
-
-        // RAVNHACK EB-550
-        pageView.on(ReadiumSDK.Views.OnePageView.SPINE_ITEM_OPEN_START, function($iframe, spineItem) {
-            self.trigger(ReadiumSDK.Events.CONTENT_DOCUMENT_LOAD_START, $iframe, spineItem);
-=======
 
         pageView.on(OnePageView.SPINE_ITEM_OPEN_START, function($iframe, spineItem) {
-
             self.emit(Globals.Events.CONTENT_DOCUMENT_LOAD_START, $iframe, spineItem);
->>>>>>> develop
         });
 
         pageView.render();
@@ -1359,7 +1350,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         return elementRange;
     }
 
-<<<<<<< HEAD
+
     this.isElementVisible = function (element) {
         var visibility = 0;
         forEachItemView(function (pageView) {
@@ -1374,10 +1365,8 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         return visibility;
     };
 
-    this.insureElementVisibility = function(spineItemId, element, initiator) {
-=======
+
     this.insureElementVisibility = function (spineItemId, element, initiator) {
->>>>>>> develop
         var pageView = undefined;
 
         forEachItemView(function (pv) {
