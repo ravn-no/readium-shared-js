@@ -1132,6 +1132,24 @@ ReadiumSDK.Views.ReaderView = function(options) {
         _iframeLoader.addIFrameEventListener(eventName, callback, context);
     };
 
+    /**
+     * Lets user customize which target to open externalLinkTargets in
+     * Cordova apps will want to use '_system' to open them in the device default browser
+     * Web apps will want to use '_blank'
+     * This method is used by internalLinkSupport
+     * This method is created by Ravn Webveveriet because of issue EB-1283
+     * 
+     * @method  getExternalLinkTarget
+     * @return {string} Target window
+     */
+    this.getExternalLinkTarget = function () {
+        if (options.externalLinkTarget) {
+            return options.externalLinkTarget;
+        } else {
+            return '_blank';
+        }
+    };
+
     var BackgroundAudioTrackManager = function()
     {
         var _spineItemIframeMap = {};

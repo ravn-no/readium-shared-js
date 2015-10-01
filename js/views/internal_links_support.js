@@ -203,7 +203,7 @@ ReadiumSDK.Views.InternalLinksSupport = function(reader) {
 
             } else {
                 // It's an absolute URL to a remote site - open it in a separate window outside the reader
-                window.open(href, '_blank');
+                window.open(href, reader.getExternalLinkTarget());
                 overrideClickEvent = true;
             }
 
