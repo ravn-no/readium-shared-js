@@ -73,7 +73,12 @@ var IFrameLoader = function() {
         iframe.setAttribute("data-baseUri", iframe.baseURI);
         iframe.setAttribute("data-src", src);
 
-        var loadedDocumentUri = new URI(src).absoluteTo(iframe.baseURI).search('').hash('').toString();
+        var loadedDocumentUri = new URI(src);
+        if (loadedDocumentUri.is('relative')) {
+            loadedDocumentUri = loadedDocumentUri.absoluteTo(iframe.baseURI).search('').hash('');
+        }
+
+        loadedDocumentUri = loadedDocumentUri.toString();
 
         self._loadIframeWithUri(iframe, attachedData, loadedDocumentUri, function () {
             
