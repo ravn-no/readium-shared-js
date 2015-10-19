@@ -26,8 +26,13 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-ReadiumSDK.Models.MediaOverlay = function(package) {
+define(["./smil_model"], function(SmilModel) {
+/**
+ *
+ * @param package
+ * @constructor
+ */
+var MediaOverlay = function(package) {
 
     this.package = package;
     
@@ -230,16 +235,14 @@ ReadiumSDK.Models.MediaOverlay = function(package) {
     }
 };
 
-ReadiumSDK.Models.MediaOverlay.fromDTO = function(moDTO, package) {
+MediaOverlay.fromDTO = function(moDTO, pack) {
 
-    var mo = new ReadiumSDK.Models.MediaOverlay(package);
+    var mo = new MediaOverlay(pack);
 
     if(!moDTO) {
         console.debug("No Media Overlay.");
         return mo;
     }
-
-    console.debug("Media Overlay INIT...");
 
     // if (mo.DEBUG)
     //     console.debug(JSON.stringify(moDTO));
@@ -270,7 +273,7 @@ ReadiumSDK.Models.MediaOverlay.fromDTO = function(moDTO, package) {
         console.debug("Media Overlay SMIL count: " + count);
 
     for(var i = 0; i < count; i++) {
-        var smilModel = ReadiumSDK.Models.SmilModel.fromSmilDTO(moDTO.smil_models[i], mo);
+        var smilModel = SmilModel.fromSmilDTO(moDTO.smil_models[i], mo);
         mo.smil_models.push(smilModel);
 
         if (mo.DEBUG)
@@ -301,5 +304,8 @@ ReadiumSDK.Models.MediaOverlay.fromDTO = function(moDTO, package) {
 
     return mo;
 };
+
+return MediaOverlay;
+});
 
 
