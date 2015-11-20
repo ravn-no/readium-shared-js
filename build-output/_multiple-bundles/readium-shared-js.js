@@ -1090,11 +1090,15 @@ var Helpers = {};
  * @returns string representing the file path / name from which the asset referenced by this URL originates
  */
 Helpers.getEbookUrlFilePath = function(ebookURL) {
-    
     if (!window.Blob || !window.File) return ebookURL;
-    
-    var ebookURL_filepath = (ebookURL instanceof Blob) ? ((ebookURL instanceof File) ? ebookURL.name : "readium-ebook.epub") : ebookURL;
-    return ebookURL_filepath;
+
+    if (ebookURL instanceof File) {
+        return ebookURL.name;
+    } else if (ebookURL instanceof Blob) {
+        return "readium-ebook.epub";
+    } else {
+        return ebookURL;
+    }
 };
 
 /**
@@ -10237,7 +10241,7 @@ console.debug("textAbsoluteRef: " + textAbsoluteRef);
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE.
 
-define('readium_shared_js/models/spine',["./spine_item"], function(SpineItem) {
+define('readium_shared_js/models/spine',["./spine_item", "../helpers", "URIjs"], function(SpineItem, Helpers, URI) {
 /**
  *  Wrapper of the spine object received from hosting application
  *
@@ -10361,11 +10365,11 @@ var Spine = function(epubPackage, spineDTO) {
     };
 
     this.item = function(index) {
-		
-		if (isValidIndex(index))
-        	return self.items[index];
-			
-		return undefined;
+        
+        if (isValidIndex(index))
+            return self.items[index];
+            
+        return undefined;
     };
 
     this.isRightToLeft = function() {
@@ -10394,11 +10398,21 @@ var Spine = function(epubPackage, spineDTO) {
 
     this.getItemByHref = function(href) {
 
+        // var href1 = Helpers.ResolveContentRef(self.items[i].href, self.package.rootUrl + "/pack.opf");
+        // var href1 = self.package.resolveRelativeUrl(href);
+        //var href1 = new URI(href).absoluteTo(self.package.rootUrl).pathname();
+        //var href1 = new URI(self.package.resolveRelativeUrl(href)).relativeTo(self.package.rootUrl).pathname();
+        
+        var href1 = new URI(self.package.resolveRelativeUrl(href)).normalizePathname().pathname();
+        
         var length = self.items.length;
 
         for(var i = 0; i < length; i++) {
-            if(self.items[i].href == href) {
-
+            
+            var href2 = new URI(self.package.resolveRelativeUrl(self.items[i].href)).normalizePathname().pathname();
+            
+            //if(self.items[i].href == href) {
+            if(href1 == href2) {
                 return self.items[i];
             }
         }
@@ -11083,7 +11097,7 @@ SmilModel.fromSmilDTO = function(smilDTO, mo) {
             indent++;
             copyChildren(nodeDTO, node);
             indent--;
-			
+            
             for(var i = 0, count = node.children.length; i < count; i++) {
                 var child = node.children[i];
 
@@ -11642,6 +11656,16 @@ var Package = function(packageData){
     this.rendition_orientation = undefined;
 
     this.resolveRelativeUrlMO = function(relativeUrl) {
+        
+        var relativeUrlUri = undefined;
+        try {
+            relativeUrlUri = new URI(relativeUrl);
+        } catch(err) {
+            console.error(err);
+            console.log(relativeUrl);
+        }
+        if (relativeUrlUri && relativeUrlUri.is("absolute")) return relativeUrl; //relativeUrlUri.scheme() == "http://", "https://", "data:", etc.
+
 
         if(self.rootUrlMO && self.rootUrlMO.length > 0) {
 
@@ -11668,7 +11692,16 @@ var Package = function(packageData){
 
     this.resolveRelativeUrl = function(relativeUrl) {
 
+        var relativeUrlUri = undefined;
+        try {
+            relativeUrlUri = new URI(relativeUrl);
+        } catch(err) {
+            console.error(err);
+            console.log(relativeUrl);
+        }
+        if (relativeUrlUri && relativeUrlUri.is("absolute")) return relativeUrl; //relativeUrlUri.scheme() == "http://", "https://", "data:", etc.
 
+        
         if(self.rootUrl) {
 
             var url = self.rootUrl;
@@ -13155,11 +13188,11 @@ define('readium_shared_js/models/trigger',["jquery", "../helpers"], function($, 
 
 var Trigger = function(domNode) {
     var $el = $(domNode);
-    this.action 	= $el.attr("action");
-    this.ref 		= $el.attr("ref");
-    this.event 		= $el.attr("ev:event");
-    this.observer 	= $el.attr("ev:observer");
-    this.ref 		= $el.attr("ref");
+    this.action     = $el.attr("action");
+    this.ref         = $el.attr("ref");
+    this.event         = $el.attr("ev:event");
+    this.observer     = $el.attr("ev:observer");
+    this.ref         = $el.attr("ref");
 };
 
 Trigger.register = function(dom) {
