@@ -900,7 +900,6 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         }
         else if (pageView && pageRequest.elementId) {
 
-            pageRange = getPageViewRange(pageView);
             sfiNav = pageView.getNavigator();
             $element = sfiNav.getElementById(pageRequest.elementId);
 
@@ -916,12 +915,11 @@ var ScrollView = function (options, isContinuousScroll, reader) {
                 return;
             }
 
-            topOffset = sfiNav.getVerticalOffsetForElement($element) + pageRange.top;
+            topOffset = sfiNav.getVerticalOffsetForElement($element);
 
         }
         else if (pageView && pageRequest.elementCfi) {
 
-            pageRange = getPageViewRange(pageView);
             sfiNav = pageView.getNavigator();
             $element = sfiNav.getElementByCfi(pageRequest.elementCfi);
 
@@ -937,7 +935,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
                 return;
             }
 
-            topOffset = sfiNav.getVerticalOffsetForElement($element) + pageRange.top;
+            topOffset = sfiNav.getVerticalOffsetForElement($element);
 
         }
         else if (pageRequest.firstPage) {
