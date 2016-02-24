@@ -402,6 +402,7 @@ var ReflowableView = function(options, reader){
             pageIndex = pageRequest.spineItemPageIndex;
         }
         else if(pageRequest.elementId) {
+            _paginationInfo.pageOffset = 0;
             pageIndex = _navigationLogic.getPageForElementId(pageRequest.elementId);
         }
         else if(pageRequest.elementCfi) {
