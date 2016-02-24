@@ -88,8 +88,7 @@ var IFrameLoader = function() {
 
     this._loadIframeWithUri = function (iframe, attachedData, contentUri, callback) {
 
-        iframe.onload = function () {
-
+        $(iframe).on("load", function() {
             var doc = iframe.contentDocument || iframe.contentWindow.document;
             $('svg', doc).load(function(){
                 console.log('SVG loaded');
@@ -112,7 +111,7 @@ var IFrameLoader = function() {
             } else {
                 callback();
             }
-        };
+        });
 
         iframe.setAttribute("src", contentUri);
     };
