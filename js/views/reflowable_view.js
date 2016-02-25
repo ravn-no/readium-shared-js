@@ -406,6 +406,7 @@ var ReflowableView = function(options, reader){
             pageIndex = _navigationLogic.getPageForElementId(pageRequest.elementId);
         }
         else if(pageRequest.elementCfi) {
+            _paginationInfo.pageOffset = 0;
             try
             {
                 pageIndex = _navigationLogic.getPageForElementCfi(pageRequest.elementCfi,
