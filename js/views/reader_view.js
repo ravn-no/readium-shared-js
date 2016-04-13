@@ -201,7 +201,7 @@ var ReaderView = function (options) {
                 return;
             }
 
-            resetCurrentView();
+            self.resetCurrentView();
         }
 
         /**
@@ -287,7 +287,12 @@ var ReaderView = function (options) {
         return [];
     };
 
-    function resetCurrentView() {
+    /**
+     * Resets the current view.
+     *
+     * @returns {undefined}
+     */
+    this.resetCurrentView = function() {
 
         if (!_currentView) {
             return;
@@ -298,7 +303,7 @@ var ReaderView = function (options) {
         _currentView.off(Globals.InternalEvents.CURRENT_VIEW_PAGINATION_CHANGED);
         _currentView.remove();
         _currentView = undefined;
-    }
+    };
 
     /**
      * Returns the currently instanced viewer settings
@@ -371,7 +376,7 @@ var ReaderView = function (options) {
         _mediaOverlayDataInjector = new MediaOverlayDataInjector(_package.media_overlay, _mediaOverlayPlayer);
 
 
-        resetCurrentView();
+        self.resetCurrentView();
 
         if (openBookData.settings) {
             self.updateSettings(openBookData.settings);
