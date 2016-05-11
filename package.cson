@@ -116,8 +116,8 @@ devDependencies:
 
     "underscore": 'latest'
 
-    "urijs": 'danielweck/URI.js'
-    #"urijs": 'latest'
+    #"urijs": 'danielweck/URI.js'
+    "urijs": 'latest'
 
     "eventemitter3": 'latest'
 
