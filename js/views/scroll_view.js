@@ -956,11 +956,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
                 return;
             }
 
-<<<<<<< HEAD
-            topOffset = sfiNav.getVerticalOffsetForElement($element);
-=======
             topOffset = domRangeAsRange.top;
->>>>>>> 0.23.0
 
         }
         else if (pageRequest.firstPage) {
