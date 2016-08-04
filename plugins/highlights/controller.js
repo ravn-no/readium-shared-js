@@ -54,7 +54,7 @@ function($, _, Class, HighlightHelpers, HighlightGroup) {
             var that = this;
 
             var leftAddition = -this._getPaginationLeftOffset();
-            
+
             var isVerticalWritingMode = this.context.paginationInfo().isVerticalWritingMode;
 
             var visibleCfiRange = this.getVisibleCfiRange();
@@ -210,7 +210,11 @@ function($, _, Class, HighlightHelpers, HighlightGroup) {
 
             leftAddition = -this._getPaginationLeftOffset();
 
-            var isVerticalWritingMode = this.context.paginationInfo().isVerticalWritingMode;
+            var isVerticalWritingMode = false;
+            var paginationInfo = this.context.paginationInfo();
+            if (paginationInfo) {
+                isVerticalWritingMode = paginationInfo.isVerticalWritingMode;
+            }
 
             this._addHighlightHelper(
                 CFI, id, type, styles, selectedElements, range,
@@ -559,22 +563,28 @@ function($, _, Class, HighlightHelpers, HighlightGroup) {
         },
 
         _getPaginationLeftOffset: function() {
-        
+
             var $htmlElement = $(this.context.document.documentElement);
             if (!$htmlElement || !$htmlElement.length) {
                 // if there is no html element, we might be dealing with a fxl with a svg spine item
                 return 0;
             }
 
-            var offsetLeftPixels = $htmlElement.css(this.context.paginationInfo().isVerticalWritingMode ? "top" : (this.context.isRTL ? "right" : "left"));
+            var isVerticalWritingMode = false;
+            var paginationInfo = this.context.paginationInfo();
+            if (paginationInfo) {
+                isVerticalWritingMode = paginationInfo.isVerticalWritingMode;
+            }
+
+            var offsetLeftPixels = $htmlElement.css(isVerticalWritingMode ? "top" : (this.context.isRTL ? "right" : "left"));
             var offsetLeft = parseInt(offsetLeftPixels.replace("px", ""));
             if (isNaN(offsetLeft)) {
                 //for fixed layouts, $htmlElement.css("left") has no numerical value
                 offsetLeft = 0;
             }
-            
-            if (this.context.isRTL && !this.context.paginationInfo().isVerticalWritingMode) return -offsetLeft;
-             
+
+            if (this.context.isRTL && !isVerticalWritingMode) return -offsetLeft;
+
             return offsetLeft;
         },
 
