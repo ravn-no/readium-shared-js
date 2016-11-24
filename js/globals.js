@@ -25,7 +25,10 @@
 //  OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
 //  OF THE POSSIBILITY OF SUCH DAMAGE.
 
-define(['underscore','eventEmitter'], function(_, EventEmitter) {
+define(['jquery','eventEmitter'], function($, EventEmitter) {
+    
+    var DEBUG = false;
+    
 /**
  * Top level ReadiumSDK namespace
  * @namespace
@@ -93,6 +96,10 @@ var Globals = {
         /**
          * @event
          */
+        CONTENT_DOCUMENT_UNLOADED: "ContentDocumentUnloaded",
+        /**
+         * @event
+         */
         MEDIA_OVERLAY_STATUS_CHANGED: "MediaOverlayStatusChanged",
         /**
          * @event
@@ -118,10 +125,15 @@ var Globals = {
          * @event
          */
         CURRENT_VIEW_PAGINATION_CHANGED: "CurrentViewPaginationChanged",
+    },
+    
+    logEvent: function(eventName, eventType, eventSource) {
+        if (DEBUG) {
+            console.debug("#### ReadiumSDK.Events." + eventName + " - "+eventType+" - " + eventSource);
+        }
     }
-
 };
-_.extend(Globals, new EventEmitter());
+$.extend(Globals, new EventEmitter());
 
 return Globals;
 

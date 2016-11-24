@@ -12,13 +12,13 @@
 //  prior written permission.
 
 //'text!empty:'
-define(['console_shim', 'eventEmitter', 'URIjs', 'readium_cfi_js', 'readium_js_plugins', './globals'], function (console_shim, EventEmitter, URI, epubCfi, PluginsController, Globals) {
+define(['./globals', 'jquery', 'console_shim', 'es6-collections', 'eventEmitter', 'URIjs', 'readium_cfi_js', 'readium_js_plugins'], function (Globals, $, console_shim, es6collections, EventEmitter, URI, epubCfi, PluginsController) {
 
     console.log("Globals...");
 
     if (window["ReadiumSDK"]) {
         console.log("ReadiumSDK extend.");
-        _.extend(Globals, window.ReadiumSDK);
+        $.extend(Globals, window.ReadiumSDK);
     } else {
         console.log("ReadiumSDK set.");
     }
@@ -45,6 +45,9 @@ define(['console_shim', 'eventEmitter', 'URIjs', 'readium_cfi_js', 'readium_js_p
     // Plugins bootstrapping begins
     Globals.Plugins = PluginsController;
     Globals.on(Globals.Events.READER_INITIALIZED, function(reader) {
+        
+        Globals.logEvent("READER_INITIALIZED", "ON", "globalsSetup.js");
+        
         try {
             PluginsController.initialize(reader);
         } catch (ex) {
@@ -52,7 +55,7 @@ define(['console_shim', 'eventEmitter', 'URIjs', 'readium_cfi_js', 'readium_js_p
         }
 
         _.defer(function() {
-            console.log("Plugins loaded.");
+            Globals.logEvent("PLUGINS_LOADED", "EMIT", "globalsSetup.js");
             Globals.emit(Globals.Events.PLUGINS_LOADED, reader);
         });
     });
