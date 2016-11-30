@@ -1021,7 +1021,8 @@ var CfiNavigationLogic = function(options) {
     }
 
     this.isRangeCfi = function (partialCfi) {
-        return EPUBcfi.Interpreter.isRangeCfi(getWrappedCfi(partialCfi)) || EPUBcfi.Interpreter.isRangeCfi(getWrappedCfiRelativeToContent(partialCfi));
+        /* Hotfix for https://github.com/readium/readium-shared-js/issues/353 */
+        return EPUBcfi.Interpreter.isRangeCfi(getWrappedCfiRelativeToContent(partialCfi)) || EPUBcfi.Interpreter.isRangeCfi(getWrappedCfi(partialCfi));
     };
 
     this.getPageForElementCfi = function (cfi, classBlacklist, elementBlacklist, idBlacklist) {
