@@ -55,7 +55,9 @@ function($, _, Class, HighlightHelpers, HighlightGroup) {
 
             var leftAddition = -this._getPaginationLeftOffset();
 
-            var isVerticalWritingMode = this.context.paginationInfo().isVerticalWritingMode;
+            if (this.context.paginationInfo()) {
+                var isVerticalWritingMode = this.context.paginationInfo().isVerticalWritingMode;
+            }
 
             var visibleCfiRange = this.getVisibleCfiRange();
 
