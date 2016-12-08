@@ -513,8 +513,7 @@ var OnePageView = function (options, classes, enableBookStyleOverrides, reader) 
         if (Helpers.isIframeAlive(_$iframe[0])) {
             var win = _$iframe[0].contentWindow;
             var doc = _$iframe[0].contentDocument;
-
-            var height = Math.round($(doc).outerHeight()); //body can be shorter!
+            var height = Math.round(parseFloat(win.getComputedStyle(doc.documentElement).height)); //body can be shorter!
             return height;
         }
         else if (_$epubHtml) {
