@@ -974,6 +974,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         }
         else if (pageView && pageRequest.elementId) {
 
+            pageRange = getPageViewRange(pageView);
             sfiNav = pageView.getNavigator();
             $element = sfiNav.getElementById(pageRequest.elementId);
 
@@ -995,6 +996,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         }
         else if (pageView && pageRequest.elementCfi) {
 
+            pageRange = getPageViewRange(pageView);
             sfiNav = pageView.getNavigator();
 
             var domRange = sfiNav.getDomRangeFromRangeCfi(pageRequest.elementCfi);
