@@ -63,6 +63,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
     var _spine = options.spine;
     var _userStyles = options.userStyles;
     var _deferredPageRequest;
+    var _currentPageRequest;
     var _$contentFrame;
     var _$el;
 
@@ -274,8 +275,16 @@ var ScrollView = function (options, isContinuousScroll, reader) {
             && !_isSettingScrollPosition
             && !_isLoadingNewSpineItemOnPageRequest) {
 
+            self.resetCurrentPosition();
+
             updateTransientViews();
             onPaginationChanged(self);
+
+            _.defer(function() {
+                if (!_currentPageRequest) {
+                    self.saveCurrentPosition();
+                }
+            })
 
             var settings = reader.viewerSettings();
             if (!settings.mediaOverlaysPreservePlaybackWhenScroll)
@@ -500,7 +509,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
             return;
         }
 
-        var tmpView = createPageViewForSpineItem(true);
+        var tmpView = createPageViewForSpineItem(prevSpineItem, true);
 
         // add to the end first to avoid scrolling during load
         var lastView = lastLoadedView();
@@ -517,7 +526,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
 
                 var scrollPos = scrollTop();
 
-                var newView = createPageViewForSpineItem();
+                var newView = createPageViewForSpineItem(prevSpineItem);
                 var originalHeight = range.bottom - range.top;
 
 
@@ -535,14 +544,12 @@ var ScrollView = function (options, isContinuousScroll, reader) {
                 newView.loadSpineItem(prevSpineItem, function (success, $iframe, spineItem, isNewlyLoaded, context) {
                     if (success) {
 
-                        var continueCallback = function (successFlag)
-                        {
-                            onPageViewLoaded(newView, success, $iframe, spineItem, isNewlyLoaded, context);
-
-                            callback(successFlag);
-                        };
-
-                        reachStableContentHeight(0, newView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? newView.meta_width() : 0, "addToTopOf", continueCallback); // //onIFrameLoad called before this callback, so okay.
+                        updatePageViewSizeAndAdjustScroll(newView);
+                        onPageViewLoaded(newView, success, $iframe, spineItem, isNewlyLoaded, context);
+                        callback(success);
+                        // No need for complicated reachStableContentHeight any more
+                        // Remove this
+                        //reachStableContentHeight(0, newView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? newView.meta_width() : 0, "addToTopOf", continueCallback); // //onIFrameLoad called before this callback, so okay.
                     }
                     else {
                         console.error("Unable to open 2 " + prevSpineItem.href);
@@ -581,20 +588,17 @@ var ScrollView = function (options, isContinuousScroll, reader) {
 
         var scrollPos = scrollTop();
 
-        var newView = createPageViewForSpineItem();
+        var newView = createPageViewForSpineItem(nexSpineItem);
         newView.element().insertAfter(bottomView.element());
 
         newView.loadSpineItem(nexSpineItem, function (success, $iframe, spineItem, isNewlyLoaded, context) {
             if (success) {
 
-                var continueCallback = function (successFlag)
-                {
-                    onPageViewLoaded(newView, success, $iframe, spineItem, isNewlyLoaded, context);
-
-                    callback(successFlag);
-                };
-
-                reachStableContentHeight(2, newView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? newView.meta_width() : 0, "addToBottomOf", continueCallback); // //onIFrameLoad called before this callback, so okay.
+                updatePageViewSize(newView);
+                onPageViewLoaded(newView, success, $iframe, spineItem, isNewlyLoaded, context);
+                callback(success);
+                // No need for complicated reachStableContentHeight any more
+                //reachStableContentHeight(2, newView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? newView.meta_width() : 0, "addToBottomOf", continueCallback); // //onIFrameLoad called before this callback, so okay.
             }
             else {
                 console.error("Unable to load " + nexSpineItem.href);
@@ -643,37 +647,58 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         if (!_$contentFrame) {
             return;
         }
+    };
 
-        forEachItemView(function (pageView) {
+    this.resetCurrentPosition = function() {
+        _currentPageRequest = undefined;
+    };
 
-            updatePageViewSize(pageView);
-        }, false);
+    this.saveCurrentPosition = function() {
+        // If there's a deferred page request, there's no point in saving the current position
+        // as it's going to change soon
+        if (_deferredPageRequest) {
+            return;
+        }
 
-        onPaginationChanged(self);
+        var _firstVisibleCfi = self.getFirstVisibleCfi();
+        var spineItem = _spine.getItemById(_firstVisibleCfi.idref);
+        if (spineItem) {
+            _currentPageRequest = new PageOpenRequest(spineItem, self);
+            _currentPageRequest.setElementCfi(_firstVisibleCfi.contentCFI);
+        }
+    };
 
-        updateTransientViews();
+    this.restoreCurrentPosition = function() {
+        if (_currentPageRequest) {
+            this.openPageInternal(_currentPageRequest);            
+        }
     };
 
     var _viewSettings = undefined;
-    this.setViewSettings = function (settings) {
+    this.setViewSettings = function (settings, docWillChange) {
 
         _viewSettings = settings;
 
         forEachItemView(function (pageView) {
 
-            pageView.setViewSettings(settings);
+            pageView.setViewSettings(settings, docWillChange);
 
         }, false);
     };
 
-    function createPageViewForSpineItem(isTemporaryView) {
-
+    function createPageViewForSpineItem(aSpineItem, isTemporaryView) {
+        
         options.disablePageTransitions = true; // force
+
+        var enableBookStyleOverrides = true;
+        if (aSpineItem.isFixedLayout()) {
+            enableBookStyleOverrides = false;
+        }
 
         var pageView = new OnePageView(
             options,
             ["content-doc-frame"],
-            true, //enableBookStyleOverrides
+            enableBookStyleOverrides,
             reader);
 
         pageView.on(OnePageView.Events.SPINE_ITEM_OPEN_START, function($iframe, spineItem) {
@@ -690,8 +715,31 @@ var ScrollView = function (options, isContinuousScroll, reader) {
             self.emit(Globals.Events.CONTENT_DOCUMENT_UNLOADED, $iframe, spineItem);
         });
 
+        function updatePageViewSizeAndPagination_() {
+            // Resize the PageView to fit its content and update the pagination
+            // and the adjacent views
+            updatePageViewSize(pageView);
+            onPaginationChanged(self);
+            updateTransientViews();
+            if (_currentPageRequest && !_deferredPageRequest) {
+                self.restoreCurrentPosition();                
+            }
+        }
+        var updatePageViewSizeAndPagination = _.debounce(updatePageViewSizeAndPagination_, 100);
+
+        // Observe the CONTENT_SIZE_CHANGED from the page view so the ScrollView
+        // is notified when the size of the content of the view changes, because
+        // the font or the viewport size has changed
+        pageView.on(OnePageView.Events.CONTENT_SIZE_CHANGED, function($iframe, spineItem) {
+            
+            Globals.logEvent("OnePageView.Events.CONTENT_SIZE_CHANGED", "ON", "scroll_view.js [ " + spineItem.href + " ]");
+            updatePageViewSizeAndPagination();
+        });
+
         pageView.render();
-        if (_viewSettings) pageView.setViewSettings(_viewSettings);
+
+        var docWillChange = true;
+        if (_viewSettings) pageView.setViewSettings(_viewSettings, docWillChange);
 
         if (!isTemporaryView) {
             pageView.element().data("pageView", pageView);
@@ -794,7 +842,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
 
         var scrollPos = scrollTop();
 
-        var loadedView = createPageViewForSpineItem();
+        var loadedView = createPageViewForSpineItem(spineItem);
 
         _$contentFrame.append(loadedView.element());
 
@@ -802,16 +850,11 @@ var ScrollView = function (options, isContinuousScroll, reader) {
 
             if (success) {
 
-                var continueCallback = function(successFlag)
-                {
-                    onPageViewLoaded(loadedView, success, $iframe, spineItem, isNewlyLoaded, context);
-
-                    callback(loadedView);
-
-                    //successFlag should always be true as loadedView iFrame cannot be dead at this stage.
-                };
-
-                reachStableContentHeight(1, loadedView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? loadedView.meta_width() : 0, "openPage", continueCallback); // //onIFrameLoad called before this callback, so okay.
+                updatePageViewSize(loadedView);
+                onPageViewLoaded(loadedView, success, $iframe, spineItem, isNewlyLoaded, context);
+                //callback(loadedView);
+                // No need for complicated reachStableContentHeight any more
+                //reachStableContentHeight(1, loadedView, $iframe[0], spineItem.href, spineItem.isFixedLayout(), spineItem.isFixedLayout() ? loadedView.meta_width() : 0, "openPage", continueCallback); // //onIFrameLoad called before this callback, so okay.
             }
             else {
                 console.error("Unable to load " + spineItem.href);
@@ -846,7 +889,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
     };
 
 
-    this.openPage = function (pageRequest) {
+    this.openPageInternal = function (pageRequest) {
 
         _stopTransientViewUpdate = true;
 
@@ -895,6 +938,12 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         }
     };
 
+    this.openPage = function(pageRequest) {
+        this.resetCurrentPosition();
+        _currentPageRequest = pageRequest;
+        this.openPageInternal(pageRequest);
+    }
+
     function openPageViewElement(pageView, pageRequest) {
 
         var topOffset = 0;
@@ -940,7 +989,8 @@ var ScrollView = function (options, isContinuousScroll, reader) {
                 return;
             }
 
-            topOffset = sfiNav.getVerticalOffsetForElement($element);
+            var elementRange = getElementRange(pageView, $element);
+            topOffset = elementRange.top + pageRange.top;
 
         }
         else if (pageView && pageRequest.elementCfi) {
@@ -954,7 +1004,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
             }
 
             var domRangeAsRange = getDomRangeAsRange(pageView, domRange);
-            if (isRangeIsVisibleOnScreen(pageView, domRangeAsRange, 60)) {
+            if (isRangeIsVisibleOnScreen(domRangeAsRange, 60)) {
                 //TODO refactoring required
                 // this is artificial call because MO player waits for this event to continue playing.
                 onPaginationChanged(pageRequest.initiator, pageRequest.spineItem, pageRequest.elementId);
