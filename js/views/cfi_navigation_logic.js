@@ -1543,7 +1543,7 @@ var CfiNavigationLogic = function(options) {
 
     // end dmitry debug
 
-    //if (debugMode) {
+    if (debugMode) {
 
         var $debugOverlays = [];
 
@@ -1666,7 +1666,7 @@ var CfiNavigationLogic = function(options) {
         };
 
         //
-   // }
+   }
 
 };
 return CfiNavigationLogic;
