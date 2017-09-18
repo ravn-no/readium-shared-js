@@ -242,6 +242,16 @@ var CfiNavigationLogic = function(options) {
                 left: 0
             };
         }
+        
+        // CAUSES REGRESSION BUGS !! TODO FIXME
+        // https://github.com/readium/readium-shared-js/issues/384#issuecomment-305145129
+        // else {
+        //     return {
+        //         top: 0,
+        //         left: (options.paginationInfo ? options.paginationInfo.pageOffset : 0)
+        //         //* (isPageProgressionRightToLeft() ? -1 : 1)
+        //     };
+        // }
 
         return {
             top: 0,
@@ -338,6 +348,26 @@ var CfiNavigationLogic = function(options) {
     function findPageByRectangles($element, spatialVerticalOffset) {
 
         var visibleContentOffsets = getVisibleContentOffsets();
+        //////////////////////
+        // ABOVE CAUSES REGRESSION BUGS !! TODO FIXME
+        // https://github.com/readium/readium-shared-js/issues/384#issuecomment-305145129
+        if (options.visibleContentOffsets) {
+            visibleContentOffsets = options.visibleContentOffsets();
+        }
+        if (isVerticalWritingMode()) {
+            visibleContentOffsets = {
+                top: (options.paginationInfo ? options.paginationInfo.pageOffset : 0),
+                left: 0
+            };
+        }
+        else { // THIS IS ENABLED ONLY FOR findPageByRectangles(), to fix the pageIndex computation. TODO FIXME!
+            visibleContentOffsets = {
+                top: 0,
+                left: (options.paginationInfo ? options.paginationInfo.pageOffset : 0)
+                //* (isPageProgressionRightToLeft() ? -1 : 1)
+            };
+        }
+        //////////////////////
 
         var clientRectangles = getNormalizedRectangles($element, visibleContentOffsets);
         if (clientRectangles.length === 0) { // elements with display:none, etc.
@@ -1401,7 +1431,13 @@ var CfiNavigationLogic = function(options) {
 
     function isElementBlacklisted(element) {
         var isBlacklisted = false;
-        var classAttribute = element.getAttribute("class");
+        var classAttribute = element.className;
+        // check for SVGAnimatedString
+        if (classAttribute && typeof classAttribute.animVal !== "undefined") {
+            classAttribute = classAttribute.animVal;
+        } else if (classAttribute && typeof classAttribute.baseVal !== "undefined") {
+            classAttribute = classAttribute.baseVal;
+        }
         var classList = classAttribute ? classAttribute.split(' ') : [];
         var id = element.id;
 
