@@ -897,6 +897,7 @@ var ReflowableView = function(options, reader){
                 _lastBodySize.height = newBodySize.height;
                 
                 console.debug("... updating pagination.");
+                self.emit(Globals.Events.CONTENT_SIZE_CHANGE);
 
                 updatePagination();
             } else {

@@ -98,7 +98,13 @@ var Globals = {
          */
         CONTENT_DOCUMENT_UNLOADED: "ContentDocumentUnloaded",
         /**
+         * @event CONTENT_SIZE_CHANGED
+         * Fired when the resize sensor has detected resize
+         */
+        CONTENT_SIZE_CHANGED: "ContentSizeChanged",
+        /**
          * @event
+         *
          */
         MEDIA_OVERLAY_STATUS_CHANGED: "MediaOverlayStatusChanged",
         /**

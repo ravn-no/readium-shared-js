@@ -733,6 +733,7 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         pageView.on(OnePageView.Events.CONTENT_SIZE_CHANGED, function($iframe, spineItem) {
             
             Globals.logEvent("OnePageView.Events.CONTENT_SIZE_CHANGED", "ON", "scroll_view.js [ " + spineItem.href + " ]");
+            self.emit(Globals.Events.CONTENT_SIZE_CHANGED);
             updatePageViewSizeAndPagination();
         });
 

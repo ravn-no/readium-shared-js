@@ -284,6 +284,11 @@ var ReaderView = function (options) {
             self.emit(Globals.Events.FXL_VIEW_RESIZED);
         })
 
+        _currentView.on(Globals.Events.CONTENT_SIZE_CHANGED, function() {
+            Globals.logEvent("CONTENT_SIZE_CHANGED");
+            self.emit(Globals.Events.CONTENT_SIZE_CHANGED);
+        });
+
         _currentView.render();
 
         var docWillChange = true;
