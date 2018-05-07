@@ -1493,115 +1493,115 @@ var CfiNavigationLogic = function (options) {
             _cache._invalidate();
         };
 
-        //if (_DEBUG) {
+        if (_DEBUG) {
 
-        var $debugOverlays = [];
+            var $debugOverlays = [];
 
-        //used for visual debug atm
-        function getRandomColor() {
-            var letters = '0123456789ABCDEF'.split('');
-            var color = '#';
-            for (var i = 0; i < 6; i++) {
-                color += letters[Math.round(Math.random() * 15)];
-            }
-            return color;
-        }
-
-        //used for visual debug atm
-        function addOverlayRect(rects, color, doc) {
-            var random = getRandomColor();
-            if (!(rects instanceof Array)) {
-                rects = [rects];
-            }
-            for (var i = 0; i != rects.length; i++) {
-                var rect = rects[i];
-                var overlayDiv = doc.createElement('div');
-                overlayDiv.style.position = 'absolute';
-                $(overlayDiv).css('z-index', '1000');
-                $(overlayDiv).css('pointer-events', 'none');
-                $(overlayDiv).css('opacity', '0.4');
-                overlayDiv.style.border = '1px solid white';
-                if (!color && !random) {
-                    overlayDiv.style.background = 'purple';
-                } else if (random && !color) {
-                    overlayDiv.style.background = random;
-                } else {
-                    if (color === true) {
-                        color = 'red';
-                    }
-                    overlayDiv.style.border = '1px dashed ' + color;
-                    overlayDiv.style.background = 'yellow';
+            //used for visual debug atm
+            function getRandomColor() {
+                var letters = '0123456789ABCDEF'.split('');
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.round(Math.random() * 15)];
                 }
-
-                overlayDiv.style.margin = overlayDiv.style.padding = '0';
-                overlayDiv.style.top = (rect.top ) + 'px';
-                overlayDiv.style.left = (rect.left ) + 'px';
-                // we want rect.width to be the border width, so content width is 2px less.
-                overlayDiv.style.width = (rect.width - 2) + 'px';
-                overlayDiv.style.height = (rect.height - 2) + 'px';
-                doc.documentElement.appendChild(overlayDiv);
-                $debugOverlays.push($(overlayDiv));
+                return color;
             }
-        }
 
-        function drawDebugOverlayFromRect(rect) {
-            var offsets = getPaginationOffsets();
+            //used for visual debug atm
+            function addOverlayRect(rects, color, doc) {
+                var random = getRandomColor();
+                if (!(rects instanceof Array)) {
+                    rects = [rects];
+                }
+                for (var i = 0; i != rects.length; i++) {
+                    var rect = rects[i];
+                    var overlayDiv = doc.createElement('div');
+                    overlayDiv.style.position = 'absolute';
+                    $(overlayDiv).css('z-index', '1000');
+                    $(overlayDiv).css('pointer-events', 'none');
+                    $(overlayDiv).css('opacity', '0.4');
+                    overlayDiv.style.border = '1px solid white';
+                    if (!color && !random) {
+                        overlayDiv.style.background = 'purple';
+                    } else if (random && !color) {
+                        overlayDiv.style.background = random;
+                    } else {
+                        if (color === true) {
+                            color = 'red';
+                        }
+                        overlayDiv.style.border = '1px dashed ' + color;
+                        overlayDiv.style.background = 'yellow';
+                    }
 
-            addOverlayRect({
-                left: rect.left + offsets.left,
-                top: rect.top + offsets.top,
-                width: rect.width,
-                height: rect.height
-            }, true, self.getRootDocument());
-        }
-
-        function drawDebugOverlayFromDomRange(range) {
-            var rect = getNodeRangeClientRect(
-                range.startContainer,
-                range.startOffset,
-                range.endContainer,
-                range.endOffset);
-            drawDebugOverlayFromRect(rect);
-            return rect;
-        }
-
-        function drawDebugOverlayFromNode(node) {
-            drawDebugOverlayFromRect(getNodeClientRect(node));
-        }
-
-        function clearDebugOverlays() {
-            _.each($debugOverlays, function ($el) {
-                $el.remove();
-            });
-            $debugOverlays = [];
-        }
-
-        ReadiumSDK._DEBUG_CfiNavigationLogic = {
-            clearDebugOverlays: clearDebugOverlays,
-            drawDebugOverlayFromRect: drawDebugOverlayFromRect,
-            drawDebugOverlayFromDomRange: drawDebugOverlayFromDomRange,
-            drawDebugOverlayFromNode: drawDebugOverlayFromNode,
-            debugVisibleCfis: function () {
-                console.log(JSON.stringify(ReadiumSDK.reader.getPaginationInfo().openPages));
-
-                var cfi1 = ReadiumSDK.reader.getFirstVisibleCfi();
-                var range1 = ReadiumSDK.reader.getDomRangeFromRangeCfi(cfi1);
-                console.log(cfi1, range1, drawDebugOverlayFromDomRange(range1));
-
-                var cfi2 = ReadiumSDK.reader.getLastVisibleCfi();
-                var range2 = ReadiumSDK.reader.getDomRangeFromRangeCfi(cfi2);
-                console.log(cfi2, range2, drawDebugOverlayFromDomRange(range2));
-            },
-            visibleTextRangeOffsetsRunsAvg: function () {
-                var arr = window.top._DEBUG_visibleTextRangeOffsetsRuns;
-                return arr.reduce(function (a, b) {
-                    return a + b;
-                }) / arr.length;
+                    overlayDiv.style.margin = overlayDiv.style.padding = '0';
+                    overlayDiv.style.top = (rect.top) + 'px';
+                    overlayDiv.style.left = (rect.left) + 'px';
+                    // we want rect.width to be the border width, so content width is 2px less.
+                    overlayDiv.style.width = (rect.width - 2) + 'px';
+                    overlayDiv.style.height = (rect.height - 2) + 'px';
+                    doc.documentElement.appendChild(overlayDiv);
+                    $debugOverlays.push($(overlayDiv));
+                }
             }
-        };
 
-        //
-        // }
+            function drawDebugOverlayFromRect(rect) {
+                var offsets = getPaginationOffsets();
+
+                addOverlayRect({
+                    left: rect.left + offsets.left,
+                    top: rect.top + offsets.top,
+                    width: rect.width,
+                    height: rect.height
+                }, true, self.getRootDocument());
+            }
+
+            function drawDebugOverlayFromDomRange(range) {
+                var rect = getNodeRangeClientRect(
+                    range.startContainer,
+                    range.startOffset,
+                    range.endContainer,
+                    range.endOffset);
+                drawDebugOverlayFromRect(rect);
+                return rect;
+            }
+
+            function drawDebugOverlayFromNode(node) {
+                drawDebugOverlayFromRect(getNodeClientRect(node));
+            }
+
+            function clearDebugOverlays() {
+                _.each($debugOverlays, function ($el) {
+                    $el.remove();
+                });
+                $debugOverlays = [];
+            }
+
+            ReadiumSDK._DEBUG_CfiNavigationLogic = {
+                clearDebugOverlays: clearDebugOverlays,
+                drawDebugOverlayFromRect: drawDebugOverlayFromRect,
+                drawDebugOverlayFromDomRange: drawDebugOverlayFromDomRange,
+                drawDebugOverlayFromNode: drawDebugOverlayFromNode,
+                debugVisibleCfis: function () {
+                    console.log(JSON.stringify(ReadiumSDK.reader.getPaginationInfo().openPages));
+
+                    var cfi1 = ReadiumSDK.reader.getFirstVisibleCfi();
+                    var range1 = ReadiumSDK.reader.getDomRangeFromRangeCfi(cfi1);
+                    console.log(cfi1, range1, drawDebugOverlayFromDomRange(range1));
+
+                    var cfi2 = ReadiumSDK.reader.getLastVisibleCfi();
+                    var range2 = ReadiumSDK.reader.getDomRangeFromRangeCfi(cfi2);
+                    console.log(cfi2, range2, drawDebugOverlayFromDomRange(range2));
+                },
+                visibleTextRangeOffsetsRunsAvg: function () {
+                    var arr = window.top._DEBUG_visibleTextRangeOffsetsRuns;
+                    return arr.reduce(function (a, b) {
+                        return a + b;
+                    }) / arr.length;
+                }
+            };
+
+
+        }
 
         this.findFirstVisibleElement = function (visibleContentOffsets, frameDimensions) {
 
