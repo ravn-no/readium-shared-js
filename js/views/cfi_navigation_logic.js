@@ -899,8 +899,10 @@ var CfiNavigationLogic = function (options) {
             if (!rangeCfi2) {
                 if (self.isRangeCfi(rangeCfi)) {
                     var rangeInfo = self.getNodeRangeInfoFromCfi(rangeCfi);
-                    range.setStart(rangeInfo.startInfo.node, rangeInfo.startInfo.offset);
-                    range.setEnd(rangeInfo.endInfo.node, rangeInfo.endInfo.offset);
+                    if (rangeInfo !== undefined) {
+                        range.setStart(rangeInfo.startInfo.node, rangeInfo.startInfo.offset);
+                        range.setEnd(rangeInfo.endInfo.node, rangeInfo.endInfo.offset);
+                    }
                 } else {
                     var element = self.getElementByCfi(rangeCfi,
                         this.getClassBlacklist(), this.getElementBlacklist(), this.getIdBlacklist())[0];
