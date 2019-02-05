@@ -896,6 +896,7 @@ var CfiNavigationLogic = function (options) {
         this.getDomRangeFromRangeCfi = function (rangeCfi, rangeCfi2, inclusive) {
             var range = createRange();
 
+            var elementByCFI = undefined;
             if (!rangeCfi2) {
                 if (self.isRangeCfi(rangeCfi)) {
                     var rangeInfo = self.getNodeRangeInfoFromCfi(rangeCfi);
@@ -904,17 +905,20 @@ var CfiNavigationLogic = function (options) {
                         range.setEnd(rangeInfo.endInfo.node, rangeInfo.endInfo.offset);
                     }
                 } else {
-                    var element = self.getElementByCfi(rangeCfi,
-                        this.getClassBlacklist(), this.getElementBlacklist(), this.getIdBlacklist())[0];
-                    range.selectNode(element);
+                    var element = null;
+                    elementByCFI = self.getElementByCfi(rangeCfi, this.getClassBlacklist(), this.getElementBlacklist(), this.getIdBlacklist());
+                    if (elementByCFI !== undefined) {
+                        element = elementByCFI[0];
+                        range.selectNode(element);
+                    }
                 }
             } else {
                 if (self.isRangeCfi(rangeCfi)) {
                     var rangeInfo1 = self.getNodeRangeInfoFromCfi(rangeCfi);
                     range.setStart(rangeInfo1.startInfo.node, rangeInfo1.startInfo.offset);
                 } else {
-                    var elementByCFI = self.getElementByCfi(rangeCfi, this.getClassBlacklist(), this.getElementBlacklist(), this.getIdBlacklist());
                     var startElement = null;
+                    elementByCFI = self.getElementByCfi(rangeCfi, this.getClassBlacklist(), this.getElementBlacklist(), this.getIdBlacklist());
                     if (elementByCFI !== undefined) {
                         startElement = elementByCFI[0];
                         range.setStart(startElement, 0);
