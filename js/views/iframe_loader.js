@@ -64,11 +64,6 @@ var IFrameLoader = function() {
             }
             console.error("!iframe.baseURI => " + iframe.baseURI);
         }
-    
-        console.log("EPUB doc iframe src:");
-        console.log(src);
-        console.log("EPUB doc iframe base URI:");
-        console.log(iframe.baseURI);
         
         iframe.setAttribute("data-baseUri", iframe.baseURI);
         iframe.setAttribute("data-src", src);

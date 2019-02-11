@@ -51,10 +51,6 @@ var HighlightsManager = function (proxyObj, options) {
     var proxy = proxyObj;
     var annotationCSSUrl = options.annotationCSSUrl;
 
-    if (!annotationCSSUrl) {
-        console.warn("WARNING! Annotations CSS not supplied. Highlighting might not work.");
-    }
-
     _.extend(this, new EventEmitter());
 
     // this.on("all", function() {

@@ -79,10 +79,8 @@ var ReaderView = function (options) {
 
     if (options.el instanceof $) {
         _$el = options.el;
-        console.log("** EL is a jQuery selector:" + options.el.attr('id'));
     } else {
         _$el = $(options.el);
-        console.log("** EL is a string:" + _$el.attr('id'));
     }
 
     if (options.iframeLoader) {
@@ -1064,19 +1062,14 @@ var ReaderView = function (options) {
         }
         
         try {
-            console.log(cfi);
             
             var range = this.getDomRangeFromRangeCfi(cfi);
-            console.log(range);
             
             var res = ReadiumSDK._DEBUG_CfiNavigationLogic.drawDebugOverlayFromDomRange(range);
-            console.log(res);
         
             var cfiFirst = ReadiumSDK.reader.getFirstVisibleCfi();
-            console.log(cfiFirst);
             
             var cfiLast  = ReadiumSDK.reader.getLastVisibleCfi();
-            console.log(cfiLast);
             
         } catch (error) {
             //ignore
