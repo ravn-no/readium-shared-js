@@ -661,10 +661,12 @@ var ScrollView = function (options, isContinuousScroll, reader) {
         }
 
         var _firstVisibleCfi = self.getFirstVisibleCfi();
-        var spineItem = _spine.getItemById(_firstVisibleCfi.idref);
-        if (spineItem) {
-            _currentPageRequest = new PageOpenRequest(spineItem, self);
-            _currentPageRequest.setElementCfi(_firstVisibleCfi.contentCFI);
+        if (_firstVisibleCfi) {
+            var spineItem = _spine.getItemById(_firstVisibleCfi.idref);
+            if (spineItem) {
+                _currentPageRequest = new PageOpenRequest(spineItem, self);
+                _currentPageRequest.setElementCfi(_firstVisibleCfi.contentCFI);
+            }
         }
     };
 
@@ -1536,6 +1538,16 @@ var ScrollView = function (options, isContinuousScroll, reader) {
 
     function getFirstOrLastVisibleCfi(pickerFunc) {
         var pageViews = getVisiblePageViews();
+
+        // Try to get pageViews once more
+        if (pageViews.length === 0) {
+            pageViews = getVisiblePageViews();
+            // Still no success? Then stop moving forward.
+            if (pageViews.length === 0) {
+                return null;
+            }
+        }
+
         var selectedPageView = pickerFunc(pageViews);
         var pageViewTopOffset =selectedPageView.element().position().top;
         var visibleContentOffsets, frameDimensions;
