@@ -375,10 +375,10 @@ function($, _, Class, TextLineInferrer, HighlightView, HighlightBorderView, High
                 var y = e.pageY;
 
                 if (e.type === 'touchend') {
+                    var lastTouch = _.last(e.originalEvent.changedTouches);
                     if (! lastTouch) {
                         return false;
                     }
-                    var lastTouch = _.last(e.originalEvent.changedTouches);
                     x = lastTouch.pageX;
                     y = lastTouch.pageY;
                 }
