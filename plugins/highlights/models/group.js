@@ -109,6 +109,7 @@ function($, _, Class, TextLineInferrer, HighlightView, HighlightBorderView, High
         },
 
         getFirstBlockParent: function(elem) {
+            if (! elem) {return false;}
             var win = elem.ownerDocument.defaultView;
             do {
                 var style = win.getComputedStyle(elem);
@@ -150,6 +151,7 @@ function($, _, Class, TextLineInferrer, HighlightView, HighlightBorderView, High
                     baseOffset = range.startOffset,
                     rgx = /\S+/g;
 
+                if (! blockAncestor) { return false;} // EB-2680
                 if (cloneTextMode) {
                     while (match = rgx.exec(rangeText)) {
                         var startOffset = baseOffset + rgx.lastIndex - match[0].length,
